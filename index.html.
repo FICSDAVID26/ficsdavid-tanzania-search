@@ -1,0 +1,181 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FICSDavid Tanzania Search</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f2f7fc;
+  color: #12304a;
+  text-align: center;
+}
+
+header {
+  background: #073b70;
+  color: white;
+  padding: 30px 15px;
+}
+
+header h1 {
+  font-size: 27px;
+  margin: 5px;
+}
+
+header p {
+  color: #d7eaff;
+}
+
+.container {
+  max-width: 650px;
+  margin: 35px auto;
+  padding: 20px;
+}
+
+input, select, button {
+  width: 100%;
+  padding: 14px;
+  margin: 8px 0;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+input, select {
+  border: 1px solid #bbb;
+  background: white;
+}
+
+button {
+  background: #078b55;
+  color: white;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #056b42;
+}
+
+.categories {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+.categories button {
+  background: #07549a;
+}
+
+#message {
+  margin-top: 20px;
+  color: #07549a;
+}
+
+footer {
+  margin-top: 50px;
+  background: #073b70;
+  color: white;
+  padding: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>FICSDavid Tanzania Search</h1>
+  <p>Discover Tanzania. Find Information. Connect the World.</p>
+</header>
+
+<div class="container">
+
+  <h2>Search Tanzania</h2>
+
+  <input
+    type="search"
+    id="searchInput"
+    placeholder="What are you looking for?"
+  >
+
+  <select id="region">
+    <option value="Tanzania">All Regions</option>
+    <option>Dar es Salaam</option>
+    <option>Mwanza</option>
+    <option>Dodoma</option>
+    <option>Arusha</option>
+    <option>Geita</option>
+    <option>Mbeya</option>
+    <option>Morogoro</option>
+  </select>
+
+  <button onclick="search('web')">SEARCH</button>
+
+  <div class="categories">
+    <button onclick="search('web')">Websites</button>
+    <button onclick="search('video')">Videos</button>
+    <button onclick="search('images')">Images</button>
+    <button onclick="search('news')">News</button>
+    <button onclick="search('maps')">Places & Maps</button>
+    <button onclick="search('education')">Education</button>
+  </div>
+
+  <p id="message">
+    Welcome to FICSDavid Tanzania Search.
+  </p>
+
+</div>
+
+<footer>
+  <p>Founder: David Laurent Mabula</p>
+  <p>© 2026 FICSDavid Tanzania Search</p>
+  <p>Starting in Tanzania. Expanding to the World.</p>
+</footer>
+
+<script>
+function search(type) {
+  const query = document.getElementById("searchInput").value.trim();
+  const region = document.getElementById("region").value;
+
+  if (!query) {
+    document.getElementById("message").innerText =
+      "Please enter something to search.";
+    return;
+  }
+
+  const fullQuery = encodeURIComponent(
+    query + " " + region + " Tanzania"
+  );
+
+  let url = "";
+
+  if (type === "web") {
+    url = "https://www.google.com/search?q=" + fullQuery;
+  } else if (type === "video") {
+    url = "https://www.youtube.com/results?search_query=" + fullQuery;
+  } else if (type === "images") {
+    url = "https://www.google.com/search?tbm=isch&q=" + fullQuery;
+  } else if (type === "news") {
+    url = "https://www.google.com/search?tbm=nws&q=" + fullQuery;
+  } else if (type === "maps") {
+    url = "https://www.google.com/maps/search/" + fullQuery;
+  } else if (type === "education") {
+    url = "https://www.google.com/search?q=" +
+      encodeURIComponent(query + " education Tanzania");
+  }
+
+  window.open(url, "_blank");
+}
+</script>
+
+</body>
+</html>
