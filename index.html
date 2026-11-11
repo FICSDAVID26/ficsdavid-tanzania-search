@@ -4,524 +4,256 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#54258a">
-<meta name="description" content="ficsdavid - tanzania digital services, search and communication platform.">
-<title>ficsdavid super app</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#07152f">
+<title>ficsdavid app | tanzania</title>
 
 <style>
-:root{
---purple:#54258a;
---deep:#32145c;
---light:#f5f1fa;
---white:#fff;
---text:#282234;
---muted:#716b7a;
---border:#e8e1ef;
-}
 *{box-sizing:border-box}
-body{
-margin:0;
-font-family:arial,sans-serif;
-background:var(--light);
-color:var(--text);
-}
-header{
-background:linear-gradient(120deg,var(--deep),var(--purple));
-color:white;
-padding:20px;
-text-align:center;
-}
-header h1{margin:0;font-size:28px}
-header p{margin:8px 0 0}
-.topbar{
-display:flex;
-justify-content:space-between;
-align-items:center;
-gap:10px;
-padding:12px;
-background:white;
-border-bottom:1px solid var(--border);
-}
-button,select,input{
-font:inherit;
-}
-button{
-border:0;
-padding:11px 15px;
-border-radius:9px;
-background:var(--purple);
-color:white;
-cursor:pointer;
-}
-button:hover{opacity:.88}
-button:disabled{opacity:.5;cursor:not-allowed}
-select,input{
-width:100%;
-padding:12px;
-border:1px solid var(--border);
-border-radius:9px;
-background:white;
-margin:7px 0;
-}
-main{
-max-width:1050px;
-margin:auto;
-padding:16px;
-}
-.card{
-background:white;
-padding:17px;
-border:1px solid var(--border);
-border-radius:14px;
-margin-bottom:15px;
-}
-h2,h3{color:var(--deep)}
-.muted{color:var(--muted);font-size:14px}
-.grid{
-display:grid;
-grid-template-columns:repeat(2,minmax(0,1fr));
-gap:12px;
-}
-.service{
-background:white;
-border:1px solid var(--border);
-border-radius:13px;
-padding:17px 10px;
-text-align:center;
-cursor:pointer;
-}
-.service:hover{
-border-color:var(--purple);
-background:#faf7ff;
-}
-.service .symbol{font-size:27px}
-.service strong{display:block;margin-top:8px}
-.service small{display:block;color:var(--muted);margin-top:5px}
-.section{display:none}
-.section.active{display:block}
-.row{
-display:flex;
-gap:8px;
-flex-wrap:wrap;
-}
-.row>*{flex:1}
-.result{
-border-left:4px solid var(--purple);
-background:white;
-padding:13px;
-border-radius:8px;
-margin:10px 0;
-}
-.result h3{margin:0 0 8px}
-.tag{
-display:inline-block;
-background:#eee6f7;
-color:var(--deep);
-padding:4px 8px;
-border-radius:20px;
-font-size:12px;
-}
-nav{
-position:sticky;
-top:0;
-z-index:10;
-background:white;
-padding:9px;
-display:flex;
-gap:8px;
-overflow-x:auto;
-border-bottom:1px solid var(--border);
-}
-nav button{
-white-space:nowrap;
-font-size:13px;
-padding:10px;
-}
-.secondary{background:#eee6f7;color:var(--deep)}
-footer{
-text-align:center;
-padding:25px;
-background:var(--deep);
-color:white;
-margin-top:25px;
-}
-.notice{
-background:#fff7df;
-border-left:4px solid #d49b21;
-padding:12px;
-border-radius:7px;
-font-size:14px;
-}
-@media(min-width:650px){
-.grid{grid-template-columns:repeat(4,minmax(0,1fr))}
-main{padding:24px}
-}
+body{margin:0;font-family:arial,sans-serif;background:#f1f5fb;color:#17243b}
+header{background:#07152f;color:white;padding:22px 16px;text-align:center}
+.logo{font-size:29px;font-weight:bold;color:#49c5ff}
+header p{font-size:13px;color:#d5e5ff}
+nav{display:flex;justify-content:center;gap:12px;padding:12px;background:#102447;flex-wrap:wrap}
+nav button{background:transparent;border:1px solid #6b8bb7;color:white;padding:9px 15px;border-radius:20px}
+.container{max-width:1000px;margin:auto;padding:18px}
+h2{color:#102447;font-size:21px}
+.searchbox{background:white;padding:18px;border-radius:14px;box-shadow:0 3px 12px #0001}
+input,select{padding:13px;border:1px solid #ccd5e2;border-radius:9px;font-size:15px;width:100%;margin:6px 0}
+button{cursor:pointer}
+.primary{background:#0879d1;color:white;border:0;padding:13px 18px;border-radius:9px;font-weight:bold}
+.search-actions{display:flex;gap:8px;flex-wrap:wrap}
+.search-actions button{flex:1;min-width:100px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px}
+.service{background:white;border-radius:12px;padding:17px 12px;text-align:center;box-shadow:0 2px 8px #0001;cursor:pointer;border:1px solid #e5eaf2}
+.service:active{transform:scale(.98)}
+.service .emoji{font-size:29px}
+.service h3{font-size:15px;margin:9px 0 5px}
+.service p{font-size:12px;color:#69788e;margin:0}
+.status{font-size:10px;color:#0879d1;margin-top:9px}
+.panel{background:white;padding:17px;border-radius:12px;margin:16px 0;box-shadow:0 2px 8px #0001}
+footer{background:#07152f;color:white;text-align:center;padding:23px;font-size:12px;margin-top:25px}
+.hidden{display:none}
+a{color:#0879d1}
+.small{font-size:12px;color:#69788e}
 </style>
 </head>
 
 <body>
 
 <header>
-<h1>ficsdavid</h1>
-<p id="tagline">our tanzania, our digital future</p>
-<p>founder: david laurent mabula</p>
+<div class="logo">ficsdavid</div>
+<h1>ficsdavid app</h1>
+<p id="tagline">one digital platform. many services.</p>
 </header>
 
-<div class="topbar">
-<strong>ficsdavid super app</strong>
-<select id="language" onchange="changelanguage()" style="width:auto;margin:0">
-<option value="en">english</option>
-<option value="sw">kiswahili</option>
-</select>
-</div>
-
 <nav>
-<button onclick="showsection('home')">home</button>
-<button onclick="showsection('search')">search</button>
-<button onclick="showsection('communication')">communication</button>
-<button onclick="showsection('wallet')">wallet</button>
-<button onclick="showsection('ai')">ai assistant</button>
-<button onclick="showsection('account')">account</button>
+<button onclick="setlanguage('en')">english</button>
+<button onclick="setlanguage('sw')">kiswahili</button>
 </nav>
 
-<main>
+<main class="container">
 
-<section id="home" class="section active">
-<div class="card">
-<h2 id="welcome">welcome to ficsdavid</h2>
-<p id="intro">one platform for tanzania's digital services, information and communication.</p>
-</div>
-
-<h2 id="servicestitle">our services</h2>
-
-<div class="grid">
-<div class="service" onclick="showsection('search')">
-<div class="symbol">🔎</div>
-<strong>tanzania search</strong>
-<small>find information and services</small>
-</div>
-
-<div class="service" onclick="showsection('communication')">
-<div class="symbol">📞</div>
-<strong>calls</strong>
-<small>voice and video communication</small>
-</div>
-
-<div class="service" onclick="showsection('communication')">
-<div class="symbol">💬</div>
-<strong>messages</strong>
-<small>chat and contacts</small>
-</div>
-
-<div class="service" onclick="showsection('wallet')">
-<div class="symbol">💳</div>
-<strong>ficsdavid wallet</strong>
-<small>payments and transactions</small>
-</div>
-
-<div class="service" onclick="showsection('ai')">
-<div class="symbol">🤖</div>
-<strong>ai assistant</strong>
-<small>digital assistance</small>
-</div>
-
-<div class="service" onclick="showsection('help')">
-<div class="symbol">🛟</div>
-<strong>help center</strong>
-<small>customer support</small>
-</div>
-
-<div class="service" onclick="showsection('account')">
-<div class="symbol">🔐</div>
-<strong>account security</strong>
-<small>account and pin settings</small>
-</div>
-
-<div class="service" onclick="showsection('more')">
-<div class="symbol">📱</div>
-<strong>mobile services</strong>
-<small>bundles and number services</small>
-</div>
-</div>
-</section>
-
-<section id="search" class="section">
-<div class="card">
-<h2>tanzania search</h2>
-<p class="muted">search our starter directory by keyword, region or category.</p>
-
-<input id="keyword" placeholder="enter what you want to find">
-
-<select id="region">
-<option value="">all regions</option>
-<option>dar es salaam</option>
-<option>mwanza</option>
-<option>dodoma</option>
-<option>arusha</option>
-<option>mbeya</option>
-<option>morogoro</option>
-<option>kilimanjaro</option>
-<option>tanga</option>
-<option>tabora</option>
-<option>shinyanga</option>
-<option>geita</option>
-<option>kagera</option>
-<option>iringa</option>
-<option>ruvuma</option>
-<option>mtwara</option>
-<option>lindi</option>
-<option>singida</option>
-<option>manyara</option>
-<option>njombe</option>
-<option>katavi</option>
-<option>rukwa</option>
-<option>kigoma</option>
-<option>simiyu</option>
-<option>pwani</option>
-</select>
+<section class="searchbox">
+<h2 id="searchtitle">tanzania search engine</h2>
+<p class="small" id="searchdescription">search information across the internet.</p>
 
 <select id="category">
-<option value="">all categories</option>
-<option>education</option>
-<option>business</option>
-<option>health</option>
-<option>tourism</option>
-<option>agriculture</option>
-<option>government</option>
-<option>technology</option>
-<option>transport</option>
+<option value="web">web search</option>
+<option value="images">images</option>
+<option value="videos">videos</option>
+<option value="news">news</option>
+<option value="education">education</option>
 </select>
 
-<div class="row">
-<button onclick="searchtanzania()">search</button>
-<button class="secondary" onclick="clearsearch()">clear</button>
+<input id="query" type="search" placeholder="what are you looking for?">
+
+<div class="search-actions">
+<button class="primary" onclick="searchweb()">search</button>
+<button class="primary" onclick="voicesearch()">🎤 voice</button>
 </div>
-<div id="searchresults" aria-live="polite"></div>
+<p class="small">search results are provided by google. internet connection is required.</p>
+</section>
+
+<section>
+<h2 id="servicestitle">our digital services</h2>
+<div class="grid">
+
+<div class="service" onclick="openservice('search')">
+<div class="emoji">🌍</div><h3>tanzania search</h3>
+<p>web and information search</p><div class="status">search available</div>
 </div>
 
-<div class="card">
-<h3>search the wider internet</h3>
-<p class="muted">these links search the wider web outside our starter directory.</p>
-<div class="row">
-<button onclick="externalsearch('google')">google search</button>
-<button onclick="externalsearch('bing')">bing search</button>
+<div class="service" onclick="openservice('calls')">
+<div class="emoji">📞</div><h3>voice calls</h3>
+<p>internet voice communication</p><div class="status">integration required</div>
 </div>
+
+<div class="service" onclick="openservice('video')">
+<div class="emoji">📹</div><h3>video calls</h3>
+<p>online video communication</p><div class="status">integration required</div>
+</div>
+
+<div class="service" onclick="openservice('chat')">
+<div class="emoji">💬</div><h3>messages & chat</h3>
+<p>communication services</p><div class="status">integration required</div>
+</div>
+
+<div class="service" onclick="openservice('contacts')">
+<div class="emoji">👥</div><h3>contacts</h3>
+<p>contact management</p><div class="status">integration required</div>
+</div>
+
+<div class="service" onclick="openservice('wallet')">
+<div class="emoji">💳</div><h3>ficsdavid wallet</h3>
+<p>digital wallet</p><div class="status">backend required</div>
+</div>
+
+<div class="service" onclick="openservice('payments')">
+<div class="emoji">💸</div><h3>direct payments</h3>
+<p>digital money transfers</p><div class="status">provider integration required</div>
+</div>
+
+<div class="service" onclick="openservice('mobile')">
+<div class="emoji">📱</div><h3>mobile money</h3>
+<p>m-pesa, airtel money, mixx by yas</p><div class="status">provider integration required</div>
+</div>
+
+<div class="service" onclick="openservice('bundles')">
+<div class="emoji">📶</div><h3>data bundles</h3>
+<p>internet packages</p><div class="status">provider integration required</div>
+</div>
+
+<div class="service" onclick="openservice('history')">
+<div class="emoji">📋</div><h3>transaction history</h3>
+<p>payment records</p><div class="status">backend required</div>
+</div>
+
+<div class="service" onclick="openservice('security')">
+<div class="emoji">🔐</div><h3>account security</h3>
+<p>password, pin and verification</p><div class="status">backend required</div>
+</div>
+
+<div class="service" onclick="openservice('caller')">
+<div class="emoji">🆔</div><h3>username caller id</h3>
+<p>username identification</p><div class="status">integration required</div>
+</div>
+
+<div class="service" onclick="openservice('assistant')">
+<div class="emoji">🤖</div><h3>ai assistant</h3>
+<p>intelligent digital assistance</p><div class="status">ai connection required</div>
+</div>
+
+<div class="service" onclick="openservice('support')">
+<div class="emoji">🎧</div><h3>support team</h3>
+<p>customer support and help</p><div class="status">setup required</div>
+</div>
+
+<div class="service" onclick="openservice('numbers')">
+<div class="emoji">🔢</div><h3>number services</h3>
+<p>phone number services</p><div class="status">integration required</div>
+</div>
+
+<div class="service" onclick="openservice('help')">
+<div class="emoji">❓</div><h3>help centre</h3>
+<p>guides and troubleshooting</p><div class="status">basic help available</div>
+</div>
+
 </div>
 </section>
 
-<section id="communication" class="section">
-<div class="card">
-<h2>communication centre</h2>
-<p>planned communication services:</p>
-<ul>
-<li>ficsdavid voice calls</li>
-<li>ficsdavid video calls</li>
-<li>messages and chat</li>
-<li>contacts management</li>
-<li>caller id using username</li>
-<li>normal telephone network calls (future phase)</li>
-</ul>
-<div class="notice">these services require a secure backend and calling infrastructure before real calls or messages can be sent.</div>
-</div>
+<section class="panel">
+<h2 id="accounttitle">ficsdavid account</h2>
+<p id="accounttext">account registration and secure login will be enabled after backend integration.</p>
+<p class="small">security features planned: username, password, 4 or 6-digit pin, pin change, identity verification and temporary account lockout.</p>
 </section>
 
-<section id="wallet" class="section">
-<div class="card">
-<h2>ficsdavid wallet</h2>
-<p>planned payment services:</p>
-<ul>
-<li>wallet account</li>
-<li>direct payments</li>
-<li>m-pesa integration</li>
-<li>airtel money integration</li>
-<li>mixx by yas integration</li>
-<li>halopesa integration</li>
-<li>transaction history</li>
-</ul>
-<div class="notice">wallet and payment features are not active yet. real money transfers require licensed payment partners, secure backend services and proper authorization.</div>
-</div>
-</section>
-
-<section id="ai" class="section">
-<div class="card">
-<h2>ficsdavid ai assistant</h2>
-<p>our planned assistant will support:</p>
-<ul>
-<li>questions in kiswahili and english</li>
-<li>voice search</li>
-<li>help with finding services</li>
-<li>step-by-step assistance</li>
-<li>support team escalation</li>
-</ul>
-<div class="notice">ai responses require a connected ai service and secure api configuration.</div>
-</div>
-</section>
-
-<section id="help" class="section">
-<div class="card">
-<h2>help center</h2>
-<p>get assistance with:</p>
-<ul>
-<li>account problems</li>
-<li>search problems</li>
-<li>pin and security questions</li>
-<li>wallet and payment support</li>
-<li>communication services</li>
-</ul>
-<p class="muted">support contact details will be added when official support channels are established.</p>
-</div>
-</section>
-
-<section id="account" class="section">
-<div class="card">
-<h2>account and security</h2>
-<p>planned account features:</p>
-<ul>
-<li>username and password</li>
-<li>four-digit or six-digit pin</li>
-<li>pin confirmation</li>
-<li>forgot pin verification</li>
-<li>temporary account lock after repeated failed attempts</li>
-</ul>
-<div class="notice">this is currently an interface only. do not enter real passwords or pins here. secure registration and authentication must be implemented on the backend.</div>
-</div>
-</section>
-
-<section id="more" class="section">
-<div class="card">
-<h2>mobile services</h2>
-<ul>
-<li>data bundles (mb and gb)</li>
-<li>mobile number services</li>
-<li>pin services</li>
-<li>mobile network service information</li>
-</ul>
-<div class="notice">purchases and network services will require official operator integrations.</div>
-</div>
+<section class="panel">
+<h2 id="supporttitle">about ficsdavid</h2>
+<p>ficsdavid is a digital platform designed to connect people with useful internet, communication and financial services.</p>
+<p><b>founder:</b> david laurent mabula</p>
+<p><b>initial market:</b> tanzania</p>
 </section>
 
 </main>
 
 <footer>
-<h3>ficsdavid</h3>
-<p>our tanzania, our digital future.</p>
-<p>founder: david laurent mabula</p>
-<p>© 2026 ficsdavid. all rights reserved.</p>
+<p>© 2026 ficsdavid tanzania. all rights reserved.</p>
+<p>building a connected digital future.</p>
 </footer>
 
 <script>
+let language = "en";
 
-const directory = [
-{name:"dar es salaam",category:"government",region:"dar es salaam",description:"tanzania's major commercial city."},
-{name:"mwanza",category:"tourism",region:"mwanza",description:"a major city near lake victoria."},
-{name:"dodoma",category:"government",region:"dodoma",description:"the capital city of tanzania."},
-{name:"arusha",category:"tourism",region:"arusha",description:"a gateway to northern tanzania tourism."},
-{name:"colleges in tanzania",category:"education",region:"",description:"explore colleges and educational opportunities."},
-{name:"agriculture in tanzania",category:"agriculture",region:"",description:"explore farming and agricultural activities."},
-{name:"hospitals in tanzania",category:"health",region:"",description:"find health facilities and medical information."},
-{name:"tanzania business opportunities",category:"business",region:"",description:"explore business opportunities."},
-{name:"tanzania technology",category:"technology",region:"",description:"explore technology and digital services."},
-{name:"tanzania transport",category:"transport",region:"",description:"explore transport services and information."}
-];
-
-function showsection(id){
-document.queryselectorall(".section").foreach(section=>{
-section.classlist.remove("active");
-});
-document.getelementbyid(id).classlist.add("active");
-window.scrollto({top:0,behavior:"smooth"});
+function searchweb(){
+ const q=document.getelementbyid("query").value.trim();
+ const category=document.getelementbyid("category").value;
+ if(!q){
+ alert(language==="sw"?"tafadhali andika unachotafuta.":"please enter your search.");
+ return;
+ }
+ let suffix="";
+ if(category==="images") suffix="&udm=2";
+ if(category==="videos") suffix="&udm=7";
+ if(category==="news") suffix="&tbm=nws";
+ if(category==="education") suffix="&as_sitesearch=edu";
+ window.open("https://www.google.com/search?q="+encodeuricomponent(q)+suffix,"_blank");
 }
 
-function searchtanzania(){
-const term=document.getelementbyid("keyword").value.trim().tolowercase();
-const region=document.getelementbyid("region").value;
-const category=document.getelementbyid("category").value;
-const output=document.getelementbyid("searchresults");
-
-if(!term && !region && !category){
-output.innerhtml="<p>please enter a keyword or select a region or category.</p>";
-return;
+function voicesearch(){
+ const speechrecognition=window.speechrecognition||window.webkitspeechrecognition;
+ if(!speechrecognition){
+ alert("voice search is not supported by this browser. please use text search.");
+ return;
+ }
+ const recognition=new speechrecognition();
+ recognition.lang=language==="sw"?"sw-tz":"en-us";
+ recognition.onresult=function(event){
+ document.getelementbyid("query").value=event.results[0][0].transcript;
+ searchweb();
+ };
+ recognition.onerror=function(){
+ alert("voice search failed. please try again.");
+ };
+ recognition.start();
 }
 
-const matches=directory.filter(item=>{
-const content=(item.name+" "+item.category+" "+item.region+" "+item.description).tolowercase();
-return (!term || content.includes(term)) &&
-(!region || !item.region || item.region===region) &&
-(!category || item.category===category);
-});
-
-if(matches.length===0){
-output.innerhtml="<p>no matching entries in our starter directory. try the wider web search.</p>";
-return;
+function openservice(service){
+ const messages={
+ search:"use the tanzania search engine above.",
+ calls:"internet voice calls require a secure communication server and user accounts.",
+ video:"video calls require a video communication server and permissions.",
+ chat:"messaging requires a secure backend and database.",
+ contacts:"contact management requires account permissions and secure storage.",
+ wallet:"ficsdavid wallet requires a secure financial backend.",
+ payments:"payments require authorized payment-provider integration.",
+ mobile:"m-pesa, airtel money and mixx by yas require official provider integration.",
+ bundles:"data bundle purchases require mobile network operator integration.",
+ history:"transaction history will be available after secure backend integration.",
+ security:"account registration, password and pin verification require secure authentication.",
+ caller:"username caller id requires account and communication integration.",
+ assistant:"the ai assistant requires a connected ai service.",
+ support:"support team contact channels need to be configured.",
+ numbers:"number services require telecommunications integration.",
+ help:"for assistance, use the help centre. more support features are being prepared."
+ };
+ alert(messages[service]||"service information is being prepared.");
 }
 
-output.innerhtml="<h3>results: "+matches.length+"</h3>";
-
-matches.foreach(item=>{
-const result=document.createelement("div");
-result.classname="result";
-
-const title=document.createelement("h3");
-title.textcontent=item.name;
-
-const details=document.createelement("p");
-details.textcontent="category: "+item.category+" | region: "+(item.region||"tanzania");
-
-const description=document.createelement("p");
-description.textcontent=item.description;
-
-result.append(title,details,description);
-output.appendchild(result);
-});
+function setlanguage(lang){
+ language=lang;
+ const sw=lang==="sw";
+ document.documentelement.lang=lang;
+ document.getelementbyid("tagline").textcontent=sw?"jukwaa moja la kidijitali. huduma nyingi.":"one digital platform. many services.";
+ document.getelementbyid("searchtitle").textcontent=sw?"injini ya utafutaji tanzania":"tanzania search engine";
+ document.getelementbyid("searchdescription").textcontent=sw?"tafuta taarifa mbalimbali kupitia mtandao.":"search information across the internet.";
+ document.getelementbyid("servicestitle").textcontent=sw?"huduma zetu za kidijitali":"our digital services";
+ document.getelementbyid("accounttitle").textcontent=sw?"akaunti ya ficsdavid":"ficsdavid account";
+ document.getelementbyid("accounttext").textcontent=sw?"usajili na kuingia kwenye akaunti vitawezeshwa baada ya kuunganisha mfumo wa nyuma.":"account registration and secure login will be enabled after backend integration.";
+ document.getelementbyid("supporttitle").textcontent=sw?"kuhusu ficsdavid":"about ficsdavid";
+ document.getelementbyid("query").placeholder=sw?"unatafuta nini?":"what are you looking for?";
 }
-
-function clearsearch(){
-document.getelementbyid("keyword").value="";
-document.getelementbyid("region").value="";
-document.getelementbyid("category").value="";
-document.getelementbyid("searchresults").innerhtml="";
-}
-
-function externalsearch(engine){
-const term=document.getelementbyid("keyword").value.trim();
-const region=document.getelementbyid("region").value;
-const category=document.getelementbyid("category").value;
-const query=encodeuricomponent([term,region,category,"tanzania"].filter(boolean).join(" "));
-if(!term && !region && !category){
-alert("please enter a search keyword first.");
-return;
-}
-const url=engine==="google"
-?"https://www.google.com/search?q="+query
-:"https://www.bing.com/search?q="+query;
-window.open(url,"_blank","noopener");
-}
-
-const translations={
-en:{
-tagline:"our tanzania, our digital future",
-welcome:"welcome to ficsdavid",
-intro:"one platform for tanzania's digital services, information and communication.",
-services:"our services"
-},
-sw:{
-tagline:"tanzania yetu, mustakabali wetu wa kidijitali",
-welcome:"karibu ficsdavid",
-intro:"jukwaa moja kwa huduma za kidijitali, taarifa na mawasiliano tanzania.",
-services:"huduma zetu"
-}
-};
-
-function changelanguage(){
-const lang=document.getelementbyid("language").value;
-document.documentelement.lang=lang;
-document.getelementbyid("tagline").textcontent=translations[lang].tagline;
-document.getelementbyid("welcome").textcontent=translations[lang].welcome;
-document.getelementbyid("intro").textcontent=translations[lang].intro;
-document.getelementbyid("servicestitle").textcontent=translations[lang].services;
-}
-
 </script>
+
 </body>
 </html>
