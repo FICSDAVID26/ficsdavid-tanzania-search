@@ -1,157 +1,181 @@
+html
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FICSDavid Tanzania Search</title>
-
+<title>ficsdavid tanzania search</title>
 <style>
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f4f7fb;
-  color: #172033;
-}
-
-header {
-  background: #073b70;
-  color: white;
-  padding: 22px 15px;
-  text-align: center;
-}
-
-header h1 {
-  margin: 0;
-  font-size: 25px;
-}
-
-header p {
-  margin-bottom: 0;
-}
-
-main {
-  max-width: 650px;
-  margin: 35px auto;
-  padding: 20px;
-}
-
-.search-box {
-  background: white;
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 3px 12px #0001;
-}
-
-h2 {
-  text-align: center;
-  color: #073b70;
-}
-
-input, select, button {
-  width: 100%;
-  padding: 14px;
-  margin: 9px 0;
-  border-radius: 7px;
-  font-size: 16px;
-}
-
-input, select {
-  border: 1px solid #ccc;
-}
-
-button {
-  background: #087c45;
-  color: white;
-  border: none;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-#result {
-  margin-top: 20px;
-  padding: 15px;
-  background: #edf5ff;
-  border-radius: 8px;
-  text-align: center;
-}
-
-footer {
-  text-align: center;
-  padding: 20px;
-  color: #555;
-}
+*{box-sizing:border-box}
+body{margin:0;font-family:arial,sans-serif;background:#f3f7f4;color:#183528}
+header{background:#087a45;color:white;text-align:center;padding:30px 15px}
+header h1{margin:0 0 10px;font-size:30px}
+header p{margin:5px}
+main{max-width:850px;margin:25px auto;padding:20px}
+.search-box,.panel{background:white;padding:20px;border-radius:12px;box-shadow:0 3px 12px #0001;margin-bottom:18px}
+input,select{width:100%;padding:13px;margin:8px 0;border:1px solid #bbb;border-radius:7px;font-size:16px}
+button{padding:12px 20px;border:0;border-radius:7px;background:#087a45;color:white;font-size:16px;cursor:pointer;margin:5px}
+button:hover{background:#055c33}
+.clear{background:#555}
+.result{background:white;padding:15px;border-left:5px solid #087a45;border-radius:7px;margin:12px 0;box-shadow:0 2px 8px #0001}
+.result h3{margin:0 0 8px;color:#087a45}
+.result a{color:#087a45}
+.popular button{background:#e2f2e9;color:#075b35}
+footer{text-align:center;padding:25px;background:#123c2b;color:white;margin-top:30px}
+.small{font-size:13px;color:#666}
 </style>
 </head>
-
 <body>
 
 <header>
-  <h1>FICSDavid Tanzania Search</h1>
-  <p>Discover Tanzania. Find Information. Connect the World.</p>
+<h1>ficsdavid tanzania search</h1>
+<p>discover tanzania. find information. connect opportunities.</p>
+<p><b>our tanzania, our digital future.</b></p>
 </header>
 
 <main>
-  <div class="search-box">
+<section class="search-box">
+<h2>search tanzania</h2>
+<p>search for education, business, health, tourism and other services.</p>
 
-    <h2>Search Tanzania</h2>
+<input id="searchinput" type="search" placeholder="what are you looking for?">
 
-    <p>Welcome to FICSDavid Tanzania Search.</p>
+<select id="region">
+<option value="">all regions</option>
+<option>dar es salaam</option>
+<option>mwanza</option>
+<option>dodoma</option>
+<option>arusha</option>
+<option>mbeya</option>
+<option>morogoro</option>
+<option>kilimanjaro</option>
+<option>tanga</option>
+<option>tabora</option>
+<option>shinyanga</option>
+<option>geita</option>
+<option>kagera</option>
+<option>iringa</option>
+<option>ruvuma</option>
+<option>mtwara</option>
+<option>lindi</option>
+<option>singida</option>
+<option>manyara</option>
+<option>njombe</option>
+<option>katavi</option>
+<option>rukwa</option>
+<option>kigoma</option>
+<option>simiyu</option>
+<option>pwani</option>
+</select>
 
-    <input
-      type="search"
-      id="search"
-      placeholder="What are you looking for?"
-    >
+<select id="category">
+<option value="">all categories</option>
+<option>education</option>
+<option>business</option>
+<option>health</option>
+<option>tourism</option>
+<option>agriculture</option>
+<option>government</option>
+<option>technology</option>
+<option>transport</option>
+</select>
 
-    <select id="region">
-      <option value="">All Regions</option>
-      <option>Dar es Salaam</option>
-      <option>Mwanza</option>
-      <option>Dodoma</option>
-      <option>Arusha</option>
-      <option>Geita</option>
-      <option>Mbeya</option>
-      <option>Morogoro</option>
-    </select>
+<button onclick="searchtanzania()">search</button>
+<button class="clear" onclick="clearsearch()">clear</button>
+</section>
 
-    <button onclick="searchTanzania()">
-      Search
-    </button>
+<section class="panel popular">
+<h3>popular searches</h3>
+<button onclick="quicksearch('colleges')">colleges</button>
+<button onclick="quicksearch('hospitals')">hospitals</button>
+<button onclick="quicksearch('tourism')">tourism</button>
+<button onclick="quicksearch('agriculture')">agriculture</button>
+<button onclick="quicksearch('business')">business</button>
+</section>
 
-    <div id="result">
-      Your search results will appear here.
-    </div>
+<section id="results">
+<div class="panel">
+<h3>welcome to ficsdavid tanzania search</h3>
+<p>enter a keyword and select a region or category to begin searching.</p>
+</div>
+</section>
 
-  </div>
+<section class="panel">
+<h3>search the wider web</h3>
+<p class="small">for information not yet listed in our directory, use these search services.</p>
+<a id="googlelink" href="https://www.google.com/" target="_blank">search with google</a>
+&nbsp; | &nbsp;
+<a id="binglink" href="https://www.bing.com/" target="_blank">search with bing</a>
+</section>
 </main>
 
 <footer>
-  <p>FICSDavid Tanzania Search</p>
-  <p>Founder: David Laurent Mabula</p>
-  <p>Building a smarter digital Tanzania.</p>
+<p><b>ficsdavid tanzania search</b></p>
+<p>building a smarter digital tanzania.</p>
+<p>founder: david laurent mabula</p>
+<p class="small">© 2026 ficsdavid. all rights reserved.</p>
 </footer>
 
 <script>
-function searchTanzania() {
-  const query = document.getElementById("search").value;
-  const region = document.getElementById("region").value;
-  const result = document.getElementById("result");
+const directory = [
+{name:"dar es salaam",category:"government",region:"dar es salaam",description:"tanzania's major commercial city."},
+{name:"mwanza",category:"tourism",region:"mwanza",description:"a major city on the shores of lake victoria."},
+{name:"dodoma",category:"government",region:"dodoma",description:"the capital city of tanzania."},
+{name:"arusha",category:"tourism",region:"arusha",description:"a gateway to tanzania's northern tourism circuit."},
+{name:"colleges in tanzania",category:"education",region:"",description:"explore colleges and educational opportunities in tanzania."},
+{name:"agriculture in tanzania",category:"agriculture",region:"",description:"information about farming and agricultural activities."},
+{name:"hospitals in tanzania",category:"health",region:"",description:"find health facilities and medical services."},
+{name:"tanzania business opportunities",category:"business",region:"",description:"explore business and investment opportunities."},
+{name:"tanzania technology",category:"technology",region:"",description:"explore technology and digital services."},
+{name:"tanzania transport",category:"transport",region:"",description:"explore transport services and information."}
+];
 
-  if (query.trim() === "") {
-    result.innerHTML = "Please enter something to search.";
-    return;
-  }
+function searchtanzania(){
+const term=document.getelementbyid("searchinput").value.trim().tolowercase();
+const selectedregion=document.getelementbyid("region").value;
+const selectedcategory=document.getelementbyid("category").value;
+const results=document.getelementbyid("results");
 
-  result.innerHTML =
-    "<strong>Search received!</strong><br>" +
-    "Keyword: " + query +
-    "<br>Region: " + (region || "All Regions") +
-    "<br><br>Our Tanzania search engine is under development.";
+if(!term && !selectedregion && !selectedcategory){
+results.innerhtml="<div class='panel'>please enter a keyword or select a region or category.</div>";
+return;
+}
+
+const matches=directory.filter(item=>{
+const text=(item.name+" "+item.category+" "+item.region+" "+item.description).tolowercase();
+return (!term || text.includes(term)) &&
+(!selectedregion || !item.region || item.region===selectedregion) &&
+(!selectedcategory || item.category===selectedcategory);
+});
+
+if(matches.length===0){
+results.innerhtml="<div class='panel'><h3>no local results found</h3><p>try another keyword or search the wider web below.</p></div>";
+}else{
+results.innerhtml="<h2>search results</h2>"+matches.map(item=>
+`<div class="result"><h3>${item.name}</h3><p><b>category:</b> ${item.category}</p><p><b>region:</b> ${item.region || "tanzania"}</p><p>${item.description}</p></div>`
+).join("");
+}
+
+const query=encodeuricomponent([term,selectedregion,selectedcategory,"tanzania"].filter(boolean).join(" "));
+document.getelementbyid("googlelink").href="https://www.google.com/search?q="+query;
+document.getelementbyid("binglink").href="https://www.bing.com/search?q="+query;
+}
+
+function clearsearch(){
+document.getelementbyid("searchinput").value="";
+document.getelementbyid("region").value="";
+document.getelementbyid("category").value="";
+document.getelementbyid("results").innerhtml="<div class='panel'><h3>welcome to ficsdavid tanzania search</h3><p>enter a keyword and select a region or category to begin searching.</p></div>";
+document.getelementbyid("googlelink").href="https://www.google.com/";
+document.getelementbyid("binglink").href="https://www.bing.com/";
+}
+
+function quicksearch(word){
+document.getelementbyid("searchinput").value=word;
+document.getelementbyid("region").value="";
+document.getelementbyid("category").value="";
+searchtanzania();
 }
 </script>
 
