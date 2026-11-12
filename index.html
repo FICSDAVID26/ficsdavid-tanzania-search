@@ -486,20 +486,22 @@ function searchWeb() {
     }
 
     let searchQuery = query;
-    let searchUrl = "";
+    let searchUrl = "https://duckduckgo.com/?q=";
 
-    if (category === "images") {
-        searchUrl = "https://www.bing.com/images/search?q=" + encodeURIComponent(query);
-    } else if (category === "videos") {
-        searchUrl = "https://www.bing.com/videos/search?q=" + encodeURIComponent(query);
-    } else if (category === "news") {
-        searchUrl = "https://www.bing.com/news/search?q=" + encodeURIComponent(query);
-    } else {
-        if (category === "education") {
-            searchQuery = query + " education";
-        }
-        searchUrl = "https://www.bing.com/search?q=" + encodeURIComponent(searchQuery);
+    if (category === "education") {
+        searchQuery = query + " education";
     }
+
+    const categoryParams = {
+        web: "&ia=web",
+        images: "&iax=images&ia=images",
+        videos: "&iax=videos&ia=videos",
+        news: "&iar=news&ia=news",
+        education: "&ia=web"
+    };
+
+    searchUrl += encodeURIComponent(searchQuery) +
+        (categoryParams[category] || categoryParams.web);
 
     window.open(searchUrl, "_blank", "noopener,noreferrer");
 }
