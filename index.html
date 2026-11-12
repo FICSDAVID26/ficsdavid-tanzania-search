@@ -82,6 +82,35 @@ input, select {
     margin: 6px 0;
 }
 
+.search-types {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
+    gap: 9px;
+    margin: 12px 0;
+}
+
+.search-type {
+    border: 1px solid #d7e2f0;
+    border-radius: 12px;
+    padding: 13px 8px;
+    background: #f7faff;
+    color: #183253;
+    font-weight: 700;
+    min-height: 76px;
+}
+
+.search-type .type-icon {
+    display: block;
+    font-size: 23px;
+    margin-bottom: 5px;
+}
+
+.search-type.active {
+    border: 2px solid #0879d1;
+    background: #e8f4ff;
+    color: #075da4;
+}
+
 button {
     cursor: pointer;
 }
@@ -209,13 +238,24 @@ footer {
         Search information across the internet.
     </p>
 
-    <select id="category">
-        <option value="web">Web Search</option>
-        <option value="images">Images</option>
-        <option value="videos">Videos</option>
-        <option value="news">News</option>
-        <option value="education">Education</option>
-    </select>
+    <div class="search-types" role="group" aria-label="Choose search type">
+        <button class="search-type active" type="button" data-category="web" aria-pressed="true" onclick="selectSearchType('web')">
+            <span class="type-icon">🌐</span><span id="typeweb">Web</span>
+        </button>
+        <button class="search-type" type="button" data-category="images" aria-pressed="false" onclick="selectSearchType('images')">
+            <span class="type-icon">🖼️</span><span id="typeimages">Images</span>
+        </button>
+        <button class="search-type" type="button" data-category="videos" aria-pressed="false" onclick="selectSearchType('videos')">
+            <span class="type-icon">▶️</span><span id="typevideos">Videos</span>
+        </button>
+        <button class="search-type" type="button" data-category="news" aria-pressed="false" onclick="selectSearchType('news')">
+            <span class="type-icon">📰</span><span id="typenews">News</span>
+        </button>
+        <button class="search-type" type="button" data-category="education" aria-pressed="false" onclick="selectSearchType('education')">
+            <span class="type-icon">📚</span><span id="typeeducation">Education</span>
+        </button>
+    </div>
+    <input type="hidden" id="category" value="web">
 
     <input
         id="query"
@@ -245,7 +285,7 @@ footer {
     </div>
 
     <p class="small" id="searchnote">
-        Search results are provided by Google.
+        FICSDavid search interface. Results currently open through an external search provider.
         Internet connection is required.
     </p>
 
@@ -418,15 +458,22 @@ footer {
 
 let currentLanguage = "en";
 
-/* SEARCH FUNCTION */
+/* SEARCH TYPE AND SEARCH FUNCTION */
+
+function selectSearchType(category) {
+    document.getElementById("category").value = category;
+
+    document.querySelectorAll(".search-type").forEach(function(button) {
+        const selected = button.dataset.category === category;
+        button.classList.toggle("active", selected);
+        button.setAttribute("aria-pressed", selected ? "true" : "false");
+    });
+}
 
 function searchWeb() {
-
     const queryInput = document.getElementById("query");
-    const categoryInput = document.getElementById("category");
-
     const query = queryInput.value.trim();
-    const category = categoryInput.value;
+    const category = document.getElementById("category").value || "web";
 
     if (!query) {
         alert(
@@ -434,37 +481,27 @@ function searchWeb() {
             ? "Tafadhali andika unachotafuta."
             : "Please enter your search."
         );
-
         queryInput.focus();
         return;
     }
 
     let searchQuery = query;
-    let extraParameters = "";
+    let searchUrl = "";
 
     if (category === "images") {
-        extraParameters = "&udm=2";
+        searchUrl = "https://www.bing.com/images/search?q=" + encodeURIComponent(query);
+    } else if (category === "videos") {
+        searchUrl = "https://www.bing.com/videos/search?q=" + encodeURIComponent(query);
+    } else if (category === "news") {
+        searchUrl = "https://www.bing.com/news/search?q=" + encodeURIComponent(query);
+    } else {
+        if (category === "education") {
+            searchQuery = query + " education";
+        }
+        searchUrl = "https://www.bing.com/search?q=" + encodeURIComponent(searchQuery);
     }
 
-    if (category === "videos") {
-        extraParameters = "&udm=7";
-    }
-
-    if (category === "news") {
-        extraParameters = "&tbm=nws";
-    }
-
-    if (category === "education") {
-        searchQuery = query + " education";
-    }
-
-    const searchUrl =
-        "https://www.google.com/search?q=" +
-        encodeURIComponent(searchQuery) +
-        extraParameters;
-
-    window.open(searchUrl, "_blank");
-
+    window.open(searchUrl, "_blank", "noopener,noreferrer");
 }
 
 /* VOICE SEARCH FUNCTION */
@@ -679,8 +716,14 @@ function setLanguage(language) {
 
     document.getElementById("searchnote").textContent =
         isSwahili
-        ? "Matokeo ya utafutaji yanatolewa na Google. Unahitaji intaneti."
-        : "Search results are provided by Google. Internet connection is required.";
+        ? "Muonekano wa utafutaji ni wa FICSDavid. Matokeo kwa sasa yanafunguliwa kupitia mtoa huduma wa nje. Unahitaji intaneti."
+        : "FICSDavid search interface. Results currently open through an external search provider. Internet connection is required.";
+
+    document.getElementById("typeweb").textContent = isSwahili ? "Mtandao" : "Web";
+    document.getElementById("typeimages").textContent = isSwahili ? "Picha" : "Images";
+    document.getElementById("typevideos").textContent = isSwahili ? "Video" : "Videos";
+    document.getElementById("typenews").textContent = isSwahili ? "Habari" : "News";
+    document.getElementById("typeeducation").textContent = isSwahili ? "Elimu" : "Education";
 
 }
 
