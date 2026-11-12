@@ -1,8 +1,6 @@
 -- FICSDavid shared account foundation (Cloudflare D1 / SQLite)
 -- Apply with: npx wrangler d1 migrations apply ficsdavid-main --remote
 
-PRAGMA foreign_keys = ON;
-
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
   email TEXT UNIQUE,
