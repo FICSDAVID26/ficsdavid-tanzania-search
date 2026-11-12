@@ -511,45 +511,16 @@ async function searchWeb() {
         '</div>';
     panel.scrollIntoView({ behavior: "smooth", block: "start" });
 
-    if (category !== "web" && category !== "education") {
-        list.innerHTML = '<div class="result-message">' +
-            (currentLanguage === "sw"
-                ? "Aina hii ya utafutaji bado inaandaliwa kwa matokeo ya ndani. Kwa sasa, tafuta kupitia sehemu ya Mtandao au Elimu."
-                : "This search category is not yet connected to internal results. For now, use Web or Education.") +
-            '</div>';
-        return;
-    }
-
     try {
-        const lang = currentLanguage === "sw" ? "sw" : "en";
-        const searchTerm = category === "education" ? query + " education" : query;
-        const apiUrl = "https://" + lang + ".wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=" +
-            encodeURIComponent(searchTerm) +
-            "&gsrnamespace=0&gsrlimit=8&prop=extracts%7Cpageimages%7Cinfo&exintro=1&explaintext=1&exsentences=3&piprop=thumbnail&pithumbsize=240&inprop=url&format=json&origin=*";
-        const response = await fetch(apiUrl);
-        if (!response.ok) throw new Error("Search service unavailable");
-        const data = await response.json();
-        const pages = Object.values((data.query && data.query.pages) || {})
-            .sort((a, b) => (a.index || 0) - (b.index || 0));
-
-        if (!pages.length) {
-            list.innerHTML = '<div class="result-message">' +
-                (currentLanguage === "sw" ? "Hakuna matokeo yaliyopatikana. Jaribu maneno mengine." : "No results found. Try different words.") +
-                '</div>';
-            return;
+        if (category === "images") {
+            await searchImages(query, list, count);
+        } else if (category === "videos") {
+            await searchVideos(query, list, count);
+        } else if (category === "news") {
+            await searchNews(query, list, count);
+        } else {
+            await searchKnowledge(query, category, list, count);
         }
-
-        count.textContent = pages.length + (currentLanguage === "sw" ? " matokeo" : " results");
-        list.innerHTML = pages.map(page => {
-            const link = page.fullurl || ("https://" + lang + ".wikipedia.org/?curid=" + page.pageid);
-            const image = page.thumbnail ? '<img src="' + page.thumbnail.source + '" alt="" loading="lazy">' : "";
-            const snippet = (page.extract || "").slice(0, 420);
-            return '<article class="result-card">' + image +
-                '<div><h3><a href="' + link + '" target="_blank" rel="noopener noreferrer">' +
-                escapeResultText(page.title) + '</a></h3><p>' +
-                escapeResultText(snippet) + '</p><div class="result-source">Wikipedia · ' +
-                (lang === "sw" ? "Kiswahili" : "English") + '</div></div></article>';
-        }).join("");
     } catch (error) {
         list.innerHTML = '<div class="result-message">' +
             (currentLanguage === "sw"
@@ -557,6 +528,119 @@ async function searchWeb() {
                 : "Could not load results. Check your internet connection and try again.") +
             '</div>';
     }
+}
+
+async function searchKnowledge(query, category, list, count) {
+    const lang = currentLanguage === "sw" ? "sw" : "en";
+    const searchTerm = category === "education" ? query + " education" : query;
+    const apiUrl = "https://" + lang + ".wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=" +
+        encodeURIComponent(searchTerm) +
+        "&gsrnamespace=0&gsrlimit=8&prop=extracts%7Cpageimages%7Cinfo&exintro=1&explaintext=1&exsentences=3&piprop=thumbnail&pithumbsize=240&inprop=url&format=json&origin=*";
+    const response = await fetch(apiUrl);
+    if (!response.ok) throw new Error("Knowledge search unavailable");
+    const data = await response.json();
+    const pages = Object.values((data.query && data.query.pages) || {})
+        .sort((a, b) => (a.index || 0) - (b.index || 0));
+
+    if (!pages.length) {
+        list.innerHTML = emptyResults();
+        return;
+    }
+    count.textContent = pages.length + (currentLanguage === "sw" ? " matokeo" : " results");
+    list.innerHTML = pages.map(page => {
+        const link = page.fullurl || ("https://" + lang + ".wikipedia.org/?curid=" + page.pageid);
+        const image = page.thumbnail ? '<img src="' + page.thumbnail.source + '" alt="" loading="lazy">' : "";
+        return '<article class="result-card">' + image +
+            '<div><h3><a href="' + link + '" target="_blank" rel="noopener noreferrer">' +
+            escapeResultText(page.title) + '</a></h3><p>' +
+            escapeResultText((page.extract || "").slice(0, 420)) +
+            '</p><div class="result-source">Wikipedia · ' + (lang === "sw" ? "Kiswahili" : "English") +
+            ' · ' + (currentLanguage === "sw" ? "Maarifa" : "Knowledge") + '</div></div></article>';
+    }).join("");
+}
+
+async function searchImages(query, list, count) {
+    const url = "https://api.openverse.org/v1/images/?q=" + encodeURIComponent(query) + "&page_size=12";
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Image search unavailable");
+    const data = await response.json();
+    const items = data.results || [];
+    if (!items.length) {
+        list.innerHTML = emptyResults();
+        return;
+    }
+    count.textContent = (data.result_count || items.length) + (currentLanguage === "sw" ? " picha zilizopo" : " indexed images");
+    list.innerHTML = '<div class="grid">' + items.map(item => {
+        const imageUrl = item.thumbnail || item.url;
+        const pageUrl = item.foreign_landing_url || item.detail_url || "#";
+        return '<article class="service" style="text-align:left;padding:10px">' +
+            '<a href="' + escapeResultText(pageUrl) + '" target="_blank" rel="noopener noreferrer">' +
+            '<img src="' + escapeResultText(imageUrl) + '" alt="' + escapeResultText(item.title) +
+            '" loading="lazy" style="width:100%;height:130px;object-fit:cover;border-radius:8px"></a>' +
+            '<h3>' + escapeResultText(item.title || "Image") + '</h3>' +
+            '<p>' + escapeResultText(item.creator || "Creator not listed") + '</p>' +
+            '<div class="result-source">License: ' + escapeResultText(item.license || "Check source") +
+            (item.license_version ? " " + escapeResultText(item.license_version) : "") + '</div></article>';
+    }).join("") + '</div>';
+}
+
+async function searchVideos(query, list, count) {
+    const apiUrl = "https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=" +
+        encodeURIComponent("filetype:video " + query) +
+        "&gsrnamespace=6&gsrlimit=10&prop=imageinfo&iiprop=url%7Cextmetadata&iiurlwidth=240&format=json&origin=*";
+    const response = await fetch(apiUrl);
+    if (!response.ok) throw new Error("Video search unavailable");
+    const data = await response.json();
+    const pages = Object.values((data.query && data.query.pages) || {})
+        .filter(page => page.title && /\.(webm|ogv|mp4)$/i.test(page.title));
+    if (!pages.length) {
+        list.innerHTML = emptyResults();
+        return;
+    }
+    count.textContent = pages.length + (currentLanguage === "sw" ? " video" : " videos");
+    list.innerHTML = pages.map(page => {
+        const info = page.imageinfo && page.imageinfo[0] ? page.imageinfo[0] : {};
+        const meta = info.extmetadata || {};
+        const description = meta.ShortDescription && meta.ShortDescription.value ? meta.ShortDescription.value : "";
+        const thumb = info.thumburl ? '<img src="' + escapeResultText(info.thumburl) + '" alt="" loading="lazy">' : "";
+        const fileUrl = info.descriptionurl || info.url || "#";
+        return '<article class="result-card">' + thumb + '<div><h3><a href="' +
+            escapeResultText(fileUrl) + '" target="_blank" rel="noopener noreferrer">' +
+            escapeResultText(page.title.replace(/^File:/, "")) +
+            '</a></h3><p>' + escapeResultText(description.replace(/<[^>]*>/g, "").slice(0, 250)) +
+            '</p><div class="result-source">Wikimedia Commons · Video file</div></div></article>';
+    }).join("");
+}
+
+async function searchNews(query, list, count) {
+    const apiUrl = "https://api.gdeltproject.org/api/v2/doc/doc?query=" +
+        encodeURIComponent(query) + "&mode=ArtList&format=json&maxrecords=10&sort=DateDesc";
+    const response = await fetch(apiUrl);
+    if (!response.ok) throw new Error("News search unavailable");
+    const data = await response.json();
+    const articles = data.articles || [];
+    if (!articles.length) {
+        list.innerHTML = emptyResults();
+        return;
+    }
+    count.textContent = articles.length + (currentLanguage === "sw" ? " habari" : " articles");
+    list.innerHTML = articles.map(article => {
+        const link = article.url || "#";
+        const date = article.seendate ? escapeResultText(article.seendate) : "";
+        const image = article.socialimage ? '<img src="' + escapeResultText(article.socialimage) + '" alt="" loading="lazy">' : "";
+        return '<article class="result-card">' + image + '<div><h3><a href="' +
+            escapeResultText(link) + '" target="_blank" rel="noopener noreferrer">' +
+            escapeResultText(article.title || "News article") + '</a></h3><p>' +
+            escapeResultText(article.domain || "") + (date ? " · " + date : "") +
+            '</p><div class="result-source">GDELT · ' +
+            (currentLanguage === "sw" ? "Chanzo cha habari" : "News source") + '</div></div></article>';
+    }).join("");
+}
+
+function emptyResults() {
+    return '<div class="result-message">' +
+        (currentLanguage === "sw" ? "Hakuna matokeo yaliyopatikana. Jaribu maneno mengine." : "No results found. Try different words.") +
+        '</div>';
 }
 
 function escapeResultText(value) {
@@ -777,8 +861,8 @@ function setLanguage(language) {
 
     document.getElementById("searchnote").textContent =
         isSwahili
-        ? "FICSDavid huonyesha matokeo hapa ndani. Chanzo cha sasa: Wikimedia. Unahitaji intaneti."
-        : "FICSDavid displays knowledge results here. Current source: Wikimedia. Internet connection is required.";
+        ? "Matokeo yanaonyeshwa ndani ya FICSDavid. Web/Elimu: Wikimedia; Picha: Openverse; Video: Wikimedia Commons; Habari: GDELT. Unahitaji intaneti."
+        : "Results appear inside FICSDavid. Web/Education: Wikimedia; Images: Openverse; Videos: Wikimedia Commons; News: GDELT. Internet connection is required.";
 
     document.getElementById("typeweb").textContent = isSwahili ? "Mtandao" : "Web";
     document.getElementById("typeimages").textContent = isSwahili ? "Picha" : "Images";
