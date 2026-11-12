@@ -381,7 +381,7 @@ footer {
             <div class="emoji">💳</div>
             <h3>FICSDavid Wallet</h3>
             <p>Planned digital wallet</p>
-            <div class="status">Not active yet</div>
+            <div class="status" id="walletStatus">Not active yet</div>
         </div>
 
         <div class="service" onclick="openService('payments')">
@@ -471,7 +471,7 @@ footer {
         4 or 6-digit PIN, PIN change, identity verification
         and temporary account lockout.
     </p>
-    <p class="small"><b>Safety notice:</b> Account registration and login are not active yet. Do not enter or share passwords, PINs, one-time codes or financial details on this page.</p>
+    <p class="small" id="accountSafetyNotice">Safety notice: Account registration and login are not active yet. Do not enter or share passwords, PINs, one-time codes or financial details on this page.</p>
 
 </section>
 
@@ -932,6 +932,14 @@ function setLanguage(language) {
         isSwahili
         ? "Usajili na kuingia kwenye akaunti vitawezeshwa baada ya kuunganisha backend."
         : "Account registration and secure login will be enabled after backend integration.";
+
+    document.getElementById("accountSafetyNotice").textContent =
+        isSwahili
+        ? "Tahadhari ya usalama: Usajili na kuingia kwenye akaunti bado havijaanza. Usiweke wala kushiriki password, PIN, code za uthibitisho au taarifa za fedha kwenye ukurasa huu."
+        : "Safety notice: Account registration and login are not active yet. Do not enter or share passwords, PINs, one-time codes or financial details on this page.";
+
+    document.getElementById("walletStatus").textContent =
+        isSwahili ? "Bado haijaanza" : "Not active yet";
 
     document.getElementById("abouttitle").textContent =
         isSwahili
