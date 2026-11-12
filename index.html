@@ -576,7 +576,6 @@ async function searchKnowledge(query, category, list, count, signal) {
     if (!response.ok) throw new Error("Knowledge search unavailable");
     const data = await response.json();
     if (signal.aborted) return;
-    if (signal.aborted) return;
     const pages = Object.values((data.query && data.query.pages) || {})
         .sort((a, b) => (a.index || 0) - (b.index || 0));
 
@@ -916,8 +915,8 @@ function setLanguage(language) {
 
     document.getElementById("searchdescription").textContent =
         isSwahili
-        ? "Tafuta taarifa mbalimbali kupitia mtandao."
-        : "Search information across the internet.";
+        ? "Utafutaji wa sasa unatoa maarifa na taarifa kutoka kwenye vyanzo vinavyopatikana."
+        : "Current search returns knowledge and information from available sources.";
 
     document.getElementById("servicestitle").textContent =
         isSwahili
