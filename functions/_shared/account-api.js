@@ -192,6 +192,13 @@ async function verifyCode(request, env) {
   if (!/^[0-9a-f-]{36}$/i.test(id) || !/^\d{6}$/.test(code)) {
     return json({ error: "Invalid verification details." }, 400);
   }
+  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+  const ipHash = await sha256("verify-ip:" + ip);
+  const idHash = await sha256("verify-id:" + id);
+  if (!(await rateLimit(env.DB, "verify-ip:" + ipHash, 15, 600)) ||
+      !(await rateLimit(env.DB, "verify-id:" + idHash, 5, 600))) {
+    return json({ error: "Too many verification attempts. Request a new code later." }, 429);
+  }
   const now = Math.floor(Date.now() / 1000);
   const row = await env.DB.prepare(
     "SELECT id,code_salt,code_hash,attempts,expires_at,verified_at,consumed_at FROM verification_codes WHERE id=? AND purpose='register'"
