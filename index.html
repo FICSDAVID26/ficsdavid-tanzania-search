@@ -246,7 +246,7 @@ footer {
     <h2 id="searchtitle">Tanzania Search Engine</h2>
 
     <p class="small" id="searchdescription">
-        Search information across the internet.
+        Search available knowledge, images, videos and news.
     </p>
 
     <div class="search-types" role="group" aria-label="Choose search type">
@@ -503,6 +503,7 @@ footer {
 
 let currentLanguage = "en";
 let searchRequestToken = 0;
+let activeSearchController = null;
 
 /* SEARCH TYPE AND SEARCH FUNCTION */
 
@@ -521,6 +522,9 @@ async function searchWeb() {
     const query = queryInput.value.trim();
     const category = document.getElementById("category").value || "web";
     const requestToken = ++searchRequestToken;
+    if (activeSearchController) activeSearchController.abort();
+    activeSearchController = new AbortController();
+    const requestSignal = activeSearchController.signal;
     const panel = document.getElementById("resultsPanel");
     const list = document.getElementById("resultsList");
     const count = document.getElementById("resultsCount");
@@ -542,13 +546,13 @@ async function searchWeb() {
 
     try {
         if (category === "images") {
-            await searchImages(query, list, count);
+            await searchImages(query, list, count, requestSignal);
         } else if (category === "videos") {
-            await searchVideos(query, list, count);
+            await searchVideos(query, list, count, requestSignal);
         } else if (category === "news") {
-            await searchNews(query, list, count);
+            await searchNews(query, list, count, requestSignal);
         } else {
-            await searchKnowledge(query, category, list, count);
+            await searchKnowledge(query, category, list, count, requestSignal);
         }
         if (requestToken !== searchRequestToken) return;
     } catch (error) {
@@ -561,15 +565,17 @@ async function searchWeb() {
     }
 }
 
-async function searchKnowledge(query, category, list, count) {
+async function searchKnowledge(query, category, list, count, signal) {
     const lang = currentLanguage === "sw" ? "sw" : "en";
     const searchTerm = category === "education" ? query + " education" : query;
     const apiUrl = "https://" + lang + ".wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=" +
         encodeURIComponent(searchTerm) +
         "&gsrnamespace=0&gsrlimit=8&prop=extracts%7Cpageimages%7Cinfo&exintro=1&explaintext=1&exsentences=3&piprop=thumbnail&pithumbsize=240&inprop=url&format=json&origin=*";
-    const response = await fetch(apiUrl);
+    const response = await fetch(apiUrl, { signal });
     if (!response.ok) throw new Error("Knowledge search unavailable");
     const data = await response.json();
+    if (signal.aborted) return;
+    if (signal.aborted) return;
     const pages = Object.values((data.query && data.query.pages) || {})
         .sort((a, b) => (a.index || 0) - (b.index || 0));
 
@@ -579,7 +585,7 @@ async function searchKnowledge(query, category, list, count) {
     }
     count.textContent = pages.length + (currentLanguage === "sw" ? " matokeo" : " results");
     list.innerHTML = pages.map(page => {
-        const link = safeExternalUrl(page.fullurl || ("https://" + lang + ".wikipedia.org/?curid=" + page.pageid));
+        const link = escapeResultText(safeExternalUrl(page.fullurl || ("https://" + lang + ".wikipedia.org/?curid=" + page.pageid)));
         const image = page.thumbnail ? '<img src="' + escapeResultText(safeExternalUrl(page.thumbnail.source)) + '" alt="" loading="lazy">' : "";
         return '<article class="result-card">' + image +
             '<div><h3><a href="' + link + '" target="_blank" rel="noopener noreferrer">' +
@@ -590,11 +596,12 @@ async function searchKnowledge(query, category, list, count) {
     }).join("");
 }
 
-async function searchImages(query, list, count) {
+async function searchImages(query, list, count, signal) {
     const url = "https://api.openverse.org/v1/images/?q=" + encodeURIComponent(query) + "&page_size=12";
-    const response = await fetch(url);
+    const response = await fetch(url, { signal });
     if (!response.ok) throw new Error("Image search unavailable");
     const data = await response.json();
+    if (signal.aborted) return;
     const items = data.results || [];
     if (!items.length) {
         list.innerHTML = emptyResults();
@@ -615,7 +622,7 @@ async function searchImages(query, list, count) {
     }).join("") + '</div>';
 }
 
-async function searchVideos(query, list, count) {
+async function searchVideos(query, list, count, signal) {
     const apiUrl = "https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=" +
         encodeURIComponent("filetype:video " + query) +
         "&gsrnamespace=6&gsrlimit=10&prop=imageinfo&iiprop=url%7Cextmetadata&iiurlwidth=240&format=json&origin=*";
@@ -643,12 +650,13 @@ async function searchVideos(query, list, count) {
     }).join("");
 }
 
-async function searchNews(query, list, count) {
+async function searchNews(query, list, count, signal) {
     const apiUrl = "https://api.gdeltproject.org/api/v2/doc/doc?query=" +
         encodeURIComponent(query) + "&mode=ArtList&format=json&maxrecords=10&sort=DateDesc";
     const response = await fetch(apiUrl);
     if (!response.ok) throw new Error("News search unavailable");
     const data = await response.json();
+    if (signal.aborted) return;
     const articles = data.articles || [];
     if (!articles.length) {
         list.innerHTML = emptyResults();
