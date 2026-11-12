@@ -548,8 +548,8 @@ async function searchKnowledge(query, category, list, count) {
     }
     count.textContent = pages.length + (currentLanguage === "sw" ? " matokeo" : " results");
     list.innerHTML = pages.map(page => {
-        const link = page.fullurl || ("https://" + lang + ".wikipedia.org/?curid=" + page.pageid);
-        const image = page.thumbnail ? '<img src="' + page.thumbnail.source + '" alt="" loading="lazy">' : "";
+        const link = safeExternalUrl(page.fullurl || ("https://" + lang + ".wikipedia.org/?curid=" + page.pageid));
+        const image = page.thumbnail ? '<img src="' + escapeResultText(safeExternalUrl(page.thumbnail.source)) + '" alt="" loading="lazy">' : "";
         return '<article class="result-card">' + image +
             '<div><h3><a href="' + link + '" target="_blank" rel="noopener noreferrer">' +
             escapeResultText(page.title) + '</a></h3><p>' +
@@ -571,8 +571,8 @@ async function searchImages(query, list, count) {
     }
     count.textContent = (data.result_count || items.length) + (currentLanguage === "sw" ? " picha zilizopo" : " indexed images");
     list.innerHTML = '<div class="grid">' + items.map(item => {
-        const imageUrl = item.thumbnail || item.url;
-        const pageUrl = item.foreign_landing_url || item.detail_url || "#";
+        const imageUrl = safeExternalUrl(item.thumbnail || item.url);
+        const pageUrl = safeExternalUrl(item.foreign_landing_url || item.detail_url || "#");
         return '<article class="service" style="text-align:left;padding:10px">' +
             '<a href="' + escapeResultText(pageUrl) + '" target="_blank" rel="noopener noreferrer">' +
             '<img src="' + escapeResultText(imageUrl) + '" alt="' + escapeResultText(item.title) +
@@ -603,7 +603,7 @@ async function searchVideos(query, list, count) {
         const meta = info.extmetadata || {};
         const description = meta.ShortDescription && meta.ShortDescription.value ? meta.ShortDescription.value : "";
         const thumb = info.thumburl ? '<img src="' + escapeResultText(info.thumburl) + '" alt="" loading="lazy">' : "";
-        const fileUrl = info.descriptionurl || info.url || "#";
+        const fileUrl = safeExternalUrl(info.descriptionurl || info.url || "#");
         return '<article class="result-card">' + thumb + '<div><h3><a href="' +
             escapeResultText(fileUrl) + '" target="_blank" rel="noopener noreferrer">' +
             escapeResultText(page.title.replace(/^File:/, "")) +
@@ -625,7 +625,7 @@ async function searchNews(query, list, count) {
     }
     count.textContent = articles.length + (currentLanguage === "sw" ? " habari" : " articles");
     list.innerHTML = articles.map(article => {
-        const link = article.url || "#";
+        const link = safeExternalUrl(article.url || "#");
         const date = article.seendate ? escapeResultText(article.seendate) : "";
         const image = article.socialimage ? '<img src="' + escapeResultText(article.socialimage) + '" alt="" loading="lazy">' : "";
         return '<article class="result-card">' + image + '<div><h3><a href="' +
@@ -641,6 +641,15 @@ function emptyResults() {
     return '<div class="result-message">' +
         (currentLanguage === "sw" ? "Hakuna matokeo yaliyopatikana. Jaribu maneno mengine." : "No results found. Try different words.") +
         '</div>';
+}
+
+function safeExternalUrl(value) {
+    try {
+        const parsed = new URL(String(value || ""), window.location.href);
+        return (parsed.protocol === "https:" || parsed.protocol === "http:") ? parsed.href : "#";
+    } catch (error) {
+        return "#";
+    }
 }
 
 function escapeResultText(value) {
