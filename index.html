@@ -626,9 +626,10 @@ async function searchVideos(query, list, count, signal) {
     const apiUrl = "https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=" +
         encodeURIComponent("filetype:video " + query) +
         "&gsrnamespace=6&gsrlimit=10&prop=imageinfo&iiprop=url%7Cextmetadata&iiurlwidth=240&format=json&origin=*";
-    const response = await fetch(apiUrl);
+    const response = await fetch(apiUrl, { signal });
     if (!response.ok) throw new Error("Video search unavailable");
     const data = await response.json();
+    if (signal.aborted) return;
     const pages = Object.values((data.query && data.query.pages) || {})
         .filter(page => page.title && /\.(webm|ogv|mp4)$/i.test(page.title));
     if (!pages.length) {
@@ -653,7 +654,7 @@ async function searchVideos(query, list, count, signal) {
 async function searchNews(query, list, count, signal) {
     const apiUrl = "https://api.gdeltproject.org/api/v2/doc/doc?query=" +
         encodeURIComponent(query) + "&mode=ArtList&format=json&maxrecords=10&sort=DateDesc";
-    const response = await fetch(apiUrl);
+    const response = await fetch(apiUrl, { signal });
     if (!response.ok) throw new Error("News search unavailable");
     const data = await response.json();
     if (signal.aborted) return;
@@ -950,8 +951,8 @@ function setLanguage(language) {
 
     document.getElementById("searchnote").textContent =
         isSwahili
-        ? "Matokeo yanaonyeshwa ndani ya FICSDavid. Tafuta mtandao, elimu, picha, video na habari hapa. Unahitaji intaneti."
-        : "Results appear inside FICSDavid. Search the web, education, images, videos and news here. Internet connection is required.";
+        ? "Tafuta maarifa, elimu, picha, video na habari zinazopatikana hapa. Maneno unayotafuta yanaweza kutumwa kwa huduma za utafutaji za nje. Usitafute taarifa za siri."
+        : "Search available knowledge, education, images, videos and news here. Your search terms may be sent to external search services. Do not search for sensitive information.";
 
     document.getElementById("communicationTitle").textContent = isSwahili ? "Kituo cha Mawasiliano cha FICSDavid" : "FICSDavid Communication Centre";
     document.getElementById("communicationDescription").textContent = isSwahili ? "Chagua njia ya kuwasiliana. Huduma salama zinaandaliwa." : "Choose how you want to communicate. Secure communication features are being prepared.";
