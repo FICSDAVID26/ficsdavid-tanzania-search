@@ -22,6 +22,11 @@ function base64url(bytes) {
   return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
 
+function decodeBase64url(value) {
+  const base64 = String(value).replace(/-/g, "+").replace(/_/g, "/");
+  return Uint8Array.from(atob(base64 + "=".repeat((4 - base64.length % 4) % 4)), c => c.charCodeAt(0));
+}
+
 function randomToken(size = 32) {
   return base64url(crypto.getRandomValues(new Uint8Array(size)));
 }
@@ -39,7 +44,7 @@ async function derivePassword(password, salt, iterations = PASSWORD_ITERATIONS) 
     "raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]
   );
   const bits = await crypto.subtle.deriveBits(
-    { name: "PBKDF2", hash: "SHA-256", salt: Uint8Array.from(atob(salt), c => c.charCodeAt(0)), iterations },
+    { name: "PBKDF2", hash: "SHA-256", salt: decodeBase64url(salt), iterations },
     key, 256
   );
   return hex(bits);
@@ -78,9 +83,9 @@ async function readJson(request) {
   if (!(request.headers.get("Content-Type") || "").toLowerCase().includes("application/json")) {
     throw new Error("JSON_REQUIRED");
   }
-  const length = Number(request.headers.get("Content-Length") || 0);
-  if (length > 8192) throw new Error("BODY_TOO_LARGE");
-  return request.json();
+  const raw = await request.text();
+  if (raw.length > 8192) throw new Error("BODY_TOO_LARGE");
+  try { return JSON.parse(raw); } catch (_) { throw new Error("INVALID_JSON"); }
 }
 
 async function rateLimit(db, key, limit, windowSeconds) {
@@ -340,6 +345,7 @@ export default {
     } catch (error) {
       if (error && error.message === "JSON_REQUIRED") return json({ error: "Send JSON content." }, 415);
       if (error && error.message === "BODY_TOO_LARGE") return json({ error: "Request too large." }, 413);
+      if (error && error.message === "INVALID_JSON") return json({ error: "Invalid JSON." }, 400);
       return json({ error: "The request could not be completed." }, 500);
     }
   }
