@@ -296,7 +296,7 @@ footer {
     </div>
 
     <p class="small" id="searchnote">
-        Search results appear here inside FICSDavid. Knowledge results are currently powered by Wikimedia. Internet connection is required.
+        Search results appear here inside FICSDavid. Internet connection is required.
     </p>
 
 </section>
@@ -394,7 +394,7 @@ footer {
         <div class="service" onclick="openService('mobile')">
             <div class="emoji">📱</div>
             <h3>Mobile Money</h3>
-            <p>M-Pesa, Airtel Money, Mixx by Yas</p>
+            <p>Mobile money services</p>
             <div class="status">Provider integration required</div>
         </div>
 
@@ -502,6 +502,7 @@ footer {
 "use strict";
 
 let currentLanguage = "en";
+let searchRequestToken = 0;
 
 /* SEARCH TYPE AND SEARCH FUNCTION */
 
@@ -519,6 +520,7 @@ async function searchWeb() {
     const queryInput = document.getElementById("query");
     const query = queryInput.value.trim();
     const category = document.getElementById("category").value || "web";
+    const requestToken = ++searchRequestToken;
     const panel = document.getElementById("resultsPanel");
     const list = document.getElementById("resultsList");
     const count = document.getElementById("resultsCount");
@@ -548,7 +550,9 @@ async function searchWeb() {
         } else {
             await searchKnowledge(query, category, list, count);
         }
+        if (requestToken !== searchRequestToken) return;
     } catch (error) {
+        if (requestToken !== searchRequestToken) return;
         list.innerHTML = '<div class="result-message">' +
             (currentLanguage === "sw"
                 ? "Imeshindikana kupata matokeo. Hakikisha intaneti ipo kisha jaribu tena."
@@ -606,7 +610,7 @@ async function searchImages(query, list, count) {
             '" loading="lazy" style="width:100%;height:130px;object-fit:cover;border-radius:8px"></a>' +
             '<h3>' + escapeResultText(item.title || "Image") + '</h3>' +
             '<p>' + escapeResultText(item.creator || "Creator not listed") + '</p>' +
-            '<div class="result-source">License: ' + escapeResultText(item.license || "Check source") +
+            '<div class="result-source">Usage license: ' + escapeResultText(item.license || "Check source") +
             (item.license_version ? " " + escapeResultText(item.license_version) : "") + '</div></article>';
     }).join("") + '</div>';
 }
@@ -629,7 +633,7 @@ async function searchVideos(query, list, count) {
         const info = page.imageinfo && page.imageinfo[0] ? page.imageinfo[0] : {};
         const meta = info.extmetadata || {};
         const description = meta.ShortDescription && meta.ShortDescription.value ? meta.ShortDescription.value : "";
-        const thumb = info.thumburl ? '<img src="' + escapeResultText(info.thumburl) + '" alt="" loading="lazy">' : "";
+        const thumb = info.thumburl ? '<img src="' + escapeResultText(safeExternalUrl(info.thumburl)) + '" alt="" loading="lazy">' : "";
         const fileUrl = safeExternalUrl(info.descriptionurl || info.url || "#");
         return '<article class="result-card">' + thumb + '<div><h3><a href="' +
             escapeResultText(fileUrl) + '" target="_blank" rel="noopener noreferrer">' +
@@ -654,7 +658,7 @@ async function searchNews(query, list, count) {
     list.innerHTML = articles.map(article => {
         const link = safeExternalUrl(article.url || "#");
         const date = article.seendate ? escapeResultText(article.seendate) : "";
-        const image = article.socialimage ? '<img src="' + escapeResultText(article.socialimage) + '" alt="" loading="lazy">' : "";
+        const image = article.socialimage ? '<img src="' + escapeResultText(safeExternalUrl(article.socialimage)) + '" alt="" loading="lazy">' : "";
         return '<article class="result-card">' + image + '<div><h3><a href="' +
             escapeResultText(link) + '" target="_blank" rel="noopener noreferrer">' +
             escapeResultText(article.title || "News article") + '</a></h3><p>' +
@@ -811,8 +815,8 @@ function openService(service) {
         },
 
         mobile: {
-            en: "M-Pesa, Airtel Money and Mixx by Yas require official provider integration.",
-            sw: "M-Pesa, Airtel Money na Mixx by Yas zinahitaji muunganiko rasmi wa watoa huduma."
+            en: "Mobile money services require secure integration and authorization.",
+            sw: "Huduma za pesa kwa simu zinahitaji muunganiko salama na idhini."
         },
 
         bundles: {
@@ -938,8 +942,8 @@ function setLanguage(language) {
 
     document.getElementById("searchnote").textContent =
         isSwahili
-        ? "Matokeo yanaonyeshwa ndani ya FICSDavid. Web/Elimu: Maarifa ya FICSDavid; Picha: FICSDavid; Video: FICSDavid; Habari: FICSDavid. Unahitaji intaneti."
-        : "Results appear inside FICSDavid. Web/Education: FICSDavid Knowledge; Images: FICSDavid Images; Videos: FICSDavid Videos; News: FICSDavid News. Internet connection is required.";
+        ? "Matokeo yanaonyeshwa ndani ya FICSDavid. Tafuta mtandao, elimu, picha, video na habari hapa. Unahitaji intaneti."
+        : "Results appear inside FICSDavid. Search the web, education, images, videos and news here. Internet connection is required.";
 
     document.getElementById("communicationTitle").textContent = isSwahili ? "Kituo cha Mawasiliano cha FICSDavid" : "FICSDavid Communication Centre";
     document.getElementById("communicationDescription").textContent = isSwahili ? "Chagua njia ya kuwasiliana. Huduma salama zinaandaliwa." : "Choose how you want to communicate. Secure communication features are being prepared.";
