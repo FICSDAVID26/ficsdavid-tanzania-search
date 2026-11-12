@@ -380,8 +380,8 @@ footer {
         <div class="service" onclick="openService('wallet')">
             <div class="emoji">💳</div>
             <h3>FICSDavid Wallet</h3>
-            <p>Digital wallet</p>
-            <div class="status">Backend required</div>
+            <p>Planned digital wallet</p>
+            <div class="status">Not active yet</div>
         </div>
 
         <div class="service" onclick="openService('payments')">
@@ -471,6 +471,7 @@ footer {
         4 or 6-digit PIN, PIN change, identity verification
         and temporary account lockout.
     </p>
+    <p class="small"><b>Safety notice:</b> Account registration and login are not active yet. Do not enter or share passwords, PINs, one-time codes or financial details on this page.</p>
 
 </section>
 
@@ -814,8 +815,8 @@ function openService(service) {
         },
 
         wallet: {
-            en: "FICSDavid Wallet requires a secure financial backend.",
-            sw: "FICSDavid Wallet inahitaji mfumo salama wa kifedha."
+            en: "FICSDavid Wallet is not active yet. It cannot hold money, receive deposits, send transfers or process payments. Do not share your PIN, password or one-time codes here. A secure financial backend, transaction controls and required authorizations must be completed first.",
+            sw: "FICSDavid Wallet bado haijaanza kufanya kazi. Haiwezi kuhifadhi pesa, kupokea amana, kutuma fedha au kuchakata malipo. Usishiriki PIN, password au code za uthibitisho hapa. Mfumo salama wa kifedha, udhibiti wa miamala na vibali vinavyohitajika lazima vikamilike kwanza."
         },
 
         payments: {
@@ -839,8 +840,8 @@ function openService(service) {
         },
 
         security: {
-            en: "Account registration, password and PIN verification require secure authentication.",
-            sw: "Usajili wa akaunti, password na PIN vinahitaji mfumo salama wa uthibitishaji."
+            en: "Account creation, login, password reset, PIN verification and identity checks are not active. No password or PIN is being verified or protected by this page. These features require a properly secured authentication backend before users can register.",
+            sw: "Kutengeneza akaunti, kuingia, kubadilisha password, kuthibitisha PIN na utambulisho bado havijaanza. Ukurasa huu hauhakiki wala kulinda password au PIN. Mfumo salama wa uthibitishaji lazima uunganishwe kabla ya usajili."
         },
 
         caller: {
@@ -910,8 +911,8 @@ function setLanguage(language) {
 
     document.getElementById("searchtitle").textContent =
         isSwahili
-        ? "Injini ya Utafutaji Tanzania"
-        : "Tanzania Search Engine";
+        ? "Utafutaji wa Tanzania"
+        : "Tanzania Search";
 
     document.getElementById("searchdescription").textContent =
         isSwahili
