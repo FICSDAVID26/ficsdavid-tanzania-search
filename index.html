@@ -309,6 +309,14 @@ footer {
     <div id="resultsList"></div>
 </section>
 
+<section class="panel results-section" id="servicePanel" aria-live="polite" hidden>
+    <div class="results-heading">
+        <h2 id="servicePanelTitle">Service information</h2>
+        <button type="button" class="primary" onclick="closeServicePanel()" id="closeServiceButton">Close</button>
+    </div>
+    <p id="servicePanelText"></p>
+</section>
+
 <section>
 
     <h2 id="servicestitle">Our Digital Services</h2>
@@ -804,12 +812,20 @@ function openService(service) {
         return;
     }
 
-    alert(
-        currentLanguage === "sw"
-        ? selectedMessage.sw
-        : selectedMessage.en
-    );
+    const servicePanel = document.getElementById("servicePanel");
+    document.getElementById("servicePanelTitle").textContent =
+        currentLanguage === "sw" ? "Taarifa za huduma" : "Service information";
+    document.getElementById("servicePanelText").textContent =
+        currentLanguage === "sw" ? selectedMessage.sw : selectedMessage.en;
+    document.getElementById("closeServiceButton").textContent =
+        currentLanguage === "sw" ? "Funga" : "Close";
+    servicePanel.hidden = false;
+    servicePanel.scrollIntoView({ behavior: "smooth", block: "start" });
 
+}
+
+function closeServicePanel() {
+    document.getElementById("servicePanel").hidden = true;
 }
 
 /* LANGUAGE FUNCTION */
