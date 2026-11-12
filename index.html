@@ -207,6 +207,17 @@ footer {
         font-size: 23px;
     }
 }
+
+.results-section { margin-top:18px; }
+.results-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.result-card { display:flex; gap:12px; padding:14px 0; border-bottom:1px solid #e5eaf2; }
+.result-card img { width:92px; height:72px; object-fit:cover; border-radius:8px; flex-shrink:0; }
+.result-card h3 { margin:0 0 6px; font-size:16px; }
+.result-card h3 a { color:#075da4; text-decoration:none; }
+.result-card p { margin:0; font-size:13px; line-height:1.5; color:#526176; }
+.result-source { font-size:11px; color:#0879d1; margin-top:6px; }
+.result-message { padding:14px; background:#f7faff; border-radius:10px; color:#526176; font-size:13px; }
+
 </style>
 </head>
 
@@ -285,10 +296,17 @@ footer {
     </div>
 
     <p class="small" id="searchnote">
-        FICSDavid search interface. Results currently open through an external search provider.
-        Internet connection is required.
+        Search results appear here inside FICSDavid. Knowledge results are currently powered by Wikimedia. Internet connection is required.
     </p>
 
+</section>
+
+<section class="panel results-section" id="resultsPanel" aria-live="polite" hidden>
+    <div class="results-heading">
+        <h2 id="resultsTitle">FICSDavid Results</h2>
+        <span class="small" id="resultsCount"></span>
+    </div>
+    <div id="resultsList"></div>
 </section>
 
 <section>
@@ -470,40 +488,81 @@ function selectSearchType(category) {
     });
 }
 
-function searchWeb() {
+async function searchWeb() {
     const queryInput = document.getElementById("query");
     const query = queryInput.value.trim();
     const category = document.getElementById("category").value || "web";
+    const panel = document.getElementById("resultsPanel");
+    const list = document.getElementById("resultsList");
+    const count = document.getElementById("resultsCount");
+    const title = document.getElementById("resultsTitle");
 
     if (!query) {
-        alert(
-            currentLanguage === "sw"
-            ? "Tafadhali andika unachotafuta."
-            : "Please enter your search."
-        );
+        alert(currentLanguage === "sw" ? "Tafadhali andika unachotafuta." : "Please enter your search.");
         queryInput.focus();
         return;
     }
 
-    let searchQuery = query;
-    let searchUrl = "https://duckduckgo.com/?q=";
+    panel.hidden = false;
+    title.textContent = currentLanguage === "sw" ? "Matokeo ya FICSDavid" : "FICSDavid Results";
+    count.textContent = "";
+    list.innerHTML = '<div class="result-message">' +
+        (currentLanguage === "sw" ? "Inatafuta matokeo..." : "Searching for results...") +
+        '</div>';
+    panel.scrollIntoView({ behavior: "smooth", block: "start" });
 
-    if (category === "education") {
-        searchQuery = query + " education";
+    if (category !== "web" && category !== "education") {
+        list.innerHTML = '<div class="result-message">' +
+            (currentLanguage === "sw"
+                ? "Aina hii ya utafutaji bado inaandaliwa kwa matokeo ya ndani. Kwa sasa, tafuta kupitia sehemu ya Mtandao au Elimu."
+                : "This search category is not yet connected to internal results. For now, use Web or Education.") +
+            '</div>';
+        return;
     }
 
-    const categoryParams = {
-        web: "&ia=web",
-        images: "&iax=images&ia=images",
-        videos: "&iax=videos&ia=videos",
-        news: "&iar=news&ia=news",
-        education: "&ia=web"
-    };
+    try {
+        const lang = currentLanguage === "sw" ? "sw" : "en";
+        const searchTerm = category === "education" ? query + " education" : query;
+        const apiUrl = "https://" + lang + ".wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=" +
+            encodeURIComponent(searchTerm) +
+            "&gsrnamespace=0&gsrlimit=8&prop=extracts%7Cpageimages%7Cinfo&exintro=1&explaintext=1&exsentences=3&piprop=thumbnail&pithumbsize=240&inprop=url&format=json&origin=*";
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error("Search service unavailable");
+        const data = await response.json();
+        const pages = Object.values((data.query && data.query.pages) || {})
+            .sort((a, b) => (a.index || 0) - (b.index || 0));
 
-    searchUrl += encodeURIComponent(searchQuery) +
-        (categoryParams[category] || categoryParams.web);
+        if (!pages.length) {
+            list.innerHTML = '<div class="result-message">' +
+                (currentLanguage === "sw" ? "Hakuna matokeo yaliyopatikana. Jaribu maneno mengine." : "No results found. Try different words.") +
+                '</div>';
+            return;
+        }
 
-    window.open(searchUrl, "_blank", "noopener,noreferrer");
+        count.textContent = pages.length + (currentLanguage === "sw" ? " matokeo" : " results");
+        list.innerHTML = pages.map(page => {
+            const link = page.fullurl || ("https://" + lang + ".wikipedia.org/?curid=" + page.pageid);
+            const image = page.thumbnail ? '<img src="' + page.thumbnail.source + '" alt="" loading="lazy">' : "";
+            const snippet = (page.extract || "").slice(0, 420);
+            return '<article class="result-card">' + image +
+                '<div><h3><a href="' + link + '" target="_blank" rel="noopener noreferrer">' +
+                escapeResultText(page.title) + '</a></h3><p>' +
+                escapeResultText(snippet) + '</p><div class="result-source">Wikipedia · ' +
+                (lang === "sw" ? "Kiswahili" : "English") + '</div></div></article>';
+        }).join("");
+    } catch (error) {
+        list.innerHTML = '<div class="result-message">' +
+            (currentLanguage === "sw"
+                ? "Imeshindikana kupata matokeo. Hakikisha intaneti ipo kisha jaribu tena."
+                : "Could not load results. Check your internet connection and try again.") +
+            '</div>';
+    }
+}
+
+function escapeResultText(value) {
+    return String(value || "").replace(/[&<>"']/g, function(character) {
+        return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[character];
+    });
 }
 
 /* VOICE SEARCH FUNCTION */
@@ -718,8 +777,8 @@ function setLanguage(language) {
 
     document.getElementById("searchnote").textContent =
         isSwahili
-        ? "Muonekano wa utafutaji ni wa FICSDavid. Matokeo kwa sasa yanafunguliwa kupitia mtoa huduma wa nje. Unahitaji intaneti."
-        : "FICSDavid search interface. Results currently open through an external search provider. Internet connection is required.";
+        ? "FICSDavid huonyesha matokeo hapa ndani. Chanzo cha sasa: Wikimedia. Unahitaji intaneti."
+        : "FICSDavid displays knowledge results here. Current source: Wikimedia. Internet connection is required.";
 
     document.getElementById("typeweb").textContent = isSwahili ? "Mtandao" : "Web";
     document.getElementById("typeimages").textContent = isSwahili ? "Picha" : "Images";
