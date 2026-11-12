@@ -225,6 +225,13 @@ async function register(request, env) {
       password.length < 12 || password.length > 128) {
     return json({ error: "Check your name and password. Use at least 12 characters." }, 400);
   }
+  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+  const ipHash = await sha256("register-ip:" + ip);
+  const idHash = await sha256("register-id:" + id);
+  if (!(await rateLimit(env.DB, "register-ip:" + ipHash, 10, 900)) ||
+      !(await rateLimit(env.DB, "register-id:" + idHash, 3, 900))) {
+    return json({ error: "Too many registration attempts. Try again later." }, 429);
+  }
 
   const now = Math.floor(Date.now() / 1000);
   const verified = await env.DB.prepare(
