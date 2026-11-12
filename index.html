@@ -317,6 +317,25 @@ footer {
     <p id="servicePanelText"></p>
 </section>
 
+<section class="panel" id="communicationCentre">
+    <h2 id="communicationTitle">FICSDavid Communication Centre</h2>
+    <p class="small" id="communicationDescription">Choose how you want to communicate. Secure communication features are being prepared.</p>
+    <div class="grid">
+        <button class="service" type="button" onclick="openCommunicationTool('call')">
+            <span class="emoji">📞</span><h3 id="callTitle">Call</h3><p id="callDescription">Voice communication</p>
+        </button>
+        <button class="service" type="button" onclick="openCommunicationTool('video')">
+            <span class="emoji">📹</span><h3 id="videoTitle">Video Call</h3><p id="videoDescription">Face-to-face communication</p>
+        </button>
+        <button class="service" type="button" onclick="openCommunicationTool('messages')">
+            <span class="emoji">💬</span><h3 id="messagesTitle">Messages</h3><p id="messagesDescription">Private conversations</p>
+        </button>
+        <button class="service" type="button" onclick="openCommunicationTool('contacts')">
+            <span class="emoji">👥</span><h3 id="contactsTitle">Contacts</h3><p id="contactsDescription">Manage your contacts</p>
+        </button>
+    </div>
+</section>
+
 <section>
 
     <h2 id="servicestitle">Our Digital Services</h2>
@@ -562,7 +581,7 @@ async function searchKnowledge(query, category, list, count) {
             '<div><h3><a href="' + link + '" target="_blank" rel="noopener noreferrer">' +
             escapeResultText(page.title) + '</a></h3><p>' +
             escapeResultText((page.extract || "").slice(0, 420)) +
-            '</p><div class="result-source">Wikipedia · ' + (lang === "sw" ? "Kiswahili" : "English") +
+            '</p><div class="result-source">FICSDavid Knowledge · ' + (lang === "sw" ? "Kiswahili" : "English") +
             ' · ' + (currentLanguage === "sw" ? "Maarifa" : "Knowledge") + '</div></div></article>';
     }).join("");
 }
@@ -616,7 +635,7 @@ async function searchVideos(query, list, count) {
             escapeResultText(fileUrl) + '" target="_blank" rel="noopener noreferrer">' +
             escapeResultText(page.title.replace(/^File:/, "")) +
             '</a></h3><p>' + escapeResultText(description.replace(/<[^>]*>/g, "").slice(0, 250)) +
-            '</p><div class="result-source">Wikimedia Commons · Video file</div></div></article>';
+            '</p><div class="result-source">FICSDavid Video result</div></div></article>';
     }).join("");
 }
 
@@ -639,8 +658,8 @@ async function searchNews(query, list, count) {
         return '<article class="result-card">' + image + '<div><h3><a href="' +
             escapeResultText(link) + '" target="_blank" rel="noopener noreferrer">' +
             escapeResultText(article.title || "News article") + '</a></h3><p>' +
-            escapeResultText(article.domain || "") + (date ? " · " + date : "") +
-            '</p><div class="result-source">GDELT · ' +
+            (date ? date : (currentLanguage === "sw" ? "Habari iliyochapishwa" : "Published article")) +
+            '</p><div class="result-source">FICSDavid News · ' +
             (currentLanguage === "sw" ? "Chanzo cha habari" : "News source") + '</div></div></article>';
     }).join("");
 }
@@ -715,6 +734,39 @@ function voiceSearch() {
 
     recognition.start();
 
+}
+
+/* FICSDAVID COMMUNICATION CENTRE */
+function openCommunicationTool(tool) {
+    const content = {
+        call: {
+            en: "Voice calling is part of FICSDavid Communication Centre. Secure accounts, call signalling and audio infrastructure must be connected before calls can work.",
+            sw: "Kupiga simu ni sehemu ya FICSDavid Communication Centre. Akaunti salama na mfumo wa kuunganisha simu na sauti vinahitaji kuandaliwa kabla simu hazijaanza kufanya kazi."
+        },
+        video: {
+            en: "Video calling will let users communicate face to face. Camera and microphone permissions, secure accounts and video infrastructure are still required.",
+            sw: "Video call itawawezesha watumiaji kuwasiliana ana kwa ana. Ruhusa za kamera na kipaza sauti, akaunti salama na mfumo wa video bado vinahitajika."
+        },
+        messages: {
+            en: "Private messaging will be built with secure delivery and protected message storage. Do not enter private information here yet.",
+            sw: "Ujumbe binafsi utajengwa kwa usafirishaji salama na hifadhi iliyolindwa. Kwa sasa usiweke taarifa zako za siri hapa."
+        },
+        contacts: {
+            en: "The contacts area will allow users to save and manage contacts after account login and secure storage are ready.",
+            sw: "Sehemu ya contacts itaruhusu kuhifadhi na kusimamia watu baada ya kuandaliwa kwa akaunti na hifadhi salama."
+        }
+    };
+    const item = content[tool];
+    if (!item) return;
+    document.getElementById("servicePanelTitle").textContent =
+        currentLanguage === "sw" ? "FICSDavid Mawasiliano" : "FICSDavid Communication";
+    document.getElementById("servicePanelText").textContent =
+        currentLanguage === "sw" ? item.sw : item.en;
+    document.getElementById("closeServiceButton").textContent =
+        currentLanguage === "sw" ? "Funga" : "Close";
+    const panel = document.getElementById("servicePanel");
+    panel.hidden = false;
+    panel.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 /* SERVICE INFORMATION */
@@ -886,8 +938,19 @@ function setLanguage(language) {
 
     document.getElementById("searchnote").textContent =
         isSwahili
-        ? "Matokeo yanaonyeshwa ndani ya FICSDavid. Web/Elimu: Wikimedia; Picha: Openverse; Video: Wikimedia Commons; Habari: GDELT. Unahitaji intaneti."
-        : "Results appear inside FICSDavid. Web/Education: Wikimedia; Images: Openverse; Videos: Wikimedia Commons; News: GDELT. Internet connection is required.";
+        ? "Matokeo yanaonyeshwa ndani ya FICSDavid. Web/Elimu: Maarifa ya FICSDavid; Picha: FICSDavid; Video: FICSDavid; Habari: FICSDavid. Unahitaji intaneti."
+        : "Results appear inside FICSDavid. Web/Education: FICSDavid Knowledge; Images: FICSDavid Images; Videos: FICSDavid Videos; News: FICSDavid News. Internet connection is required.";
+
+    document.getElementById("communicationTitle").textContent = isSwahili ? "Kituo cha Mawasiliano cha FICSDavid" : "FICSDavid Communication Centre";
+    document.getElementById("communicationDescription").textContent = isSwahili ? "Chagua njia ya kuwasiliana. Huduma salama zinaandaliwa." : "Choose how you want to communicate. Secure communication features are being prepared.";
+    document.getElementById("callTitle").textContent = isSwahili ? "Piga Simu" : "Call";
+    document.getElementById("callDescription").textContent = isSwahili ? "Mawasiliano ya sauti" : "Voice communication";
+    document.getElementById("videoTitle").textContent = isSwahili ? "Video Call" : "Video Call";
+    document.getElementById("videoDescription").textContent = isSwahili ? "Mawasiliano ya ana kwa ana" : "Face-to-face communication";
+    document.getElementById("messagesTitle").textContent = isSwahili ? "Ujumbe" : "Messages";
+    document.getElementById("messagesDescription").textContent = isSwahili ? "Mazungumzo binafsi" : "Private conversations";
+    document.getElementById("contactsTitle").textContent = isSwahili ? "Contacts" : "Contacts";
+    document.getElementById("contactsDescription").textContent = isSwahili ? "Simamia contacts zako" : "Manage your contacts";
 
     document.getElementById("typeweb").textContent = isSwahili ? "Mtandao" : "Web";
     document.getElementById("typeimages").textContent = isSwahili ? "Picha" : "Images";
