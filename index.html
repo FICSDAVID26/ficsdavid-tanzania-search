@@ -1,259 +1,690 @@
-
-
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#07152f">
-<title>ficsdavid app | tanzania</title>
+
+<title>FICSDavid Tanzania</title>
 
 <style>
-*{box-sizing:border-box}
-body{margin:0;font-family:arial,sans-serif;background:#f1f5fb;color:#17243b}
-header{background:#07152f;color:white;padding:22px 16px;text-align:center}
-.logo{font-size:29px;font-weight:bold;color:#49c5ff}
-header p{font-size:13px;color:#d5e5ff}
-nav{display:flex;justify-content:center;gap:12px;padding:12px;background:#102447;flex-wrap:wrap}
-nav button{background:transparent;border:1px solid #6b8bb7;color:white;padding:9px 15px;border-radius:20px}
-.container{max-width:1000px;margin:auto;padding:18px}
-h2{color:#102447;font-size:21px}
-.searchbox{background:white;padding:18px;border-radius:14px;box-shadow:0 3px 12px #0001}
-input,select{padding:13px;border:1px solid #ccd5e2;border-radius:9px;font-size:15px;width:100%;margin:6px 0}
-button{cursor:pointer}
-.primary{background:#0879d1;color:white;border:0;padding:13px 18px;border-radius:9px;font-weight:bold}
-.search-actions{display:flex;gap:8px;flex-wrap:wrap}
-.search-actions button{flex:1;min-width:100px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px}
-.service{background:white;border-radius:12px;padding:17px 12px;text-align:center;box-shadow:0 2px 8px #0001;cursor:pointer;border:1px solid #e5eaf2}
-.service:active{transform:scale(.98)}
-.service .emoji{font-size:29px}
-.service h3{font-size:15px;margin:9px 0 5px}
-.service p{font-size:12px;color:#69788e;margin:0}
-.status{font-size:10px;color:#0879d1;margin-top:9px}
-.panel{background:white;padding:17px;border-radius:12px;margin:16px 0;box-shadow:0 2px 8px #0001}
-footer{background:#07152f;color:white;text-align:center;padding:23px;font-size:12px;margin-top:25px}
-.hidden{display:none}
-a{color:#0879d1}
-.small{font-size:12px;color:#69788e}
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f1f5fb;
+    color: #17243b;
+}
+
+header {
+    background: #07152f;
+    color: white;
+    padding: 22px 16px;
+    text-align: center;
+}
+
+.logo {
+    font-size: 29px;
+    font-weight: bold;
+    color: #49c5ff;
+}
+
+header p {
+    font-size: 13px;
+    color: #d5e5ff;
+}
+
+nav {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    padding: 12px;
+    background: #102447;
+    flex-wrap: wrap;
+}
+
+nav button {
+    background: transparent;
+    border: 1px solid #6b8bb7;
+    color: white;
+    padding: 9px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.container {
+    max-width: 1000px;
+    margin: auto;
+    padding: 18px;
+}
+
+h2 {
+    color: #102447;
+    font-size: 21px;
+}
+
+.searchbox {
+    background: white;
+    padding: 18px;
+    border-radius: 14px;
+    box-shadow: 0 3px 12px #0001;
+}
+
+input, select {
+    padding: 13px;
+    border: 1px solid #ccd5e2;
+    border-radius: 9px;
+    font-size: 15px;
+    width: 100%;
+    margin: 6px 0;
+}
+
+button {
+    cursor: pointer;
+}
+
+.primary {
+    background: #0879d1;
+    color: white;
+    border: 0;
+    padding: 13px 18px;
+    border-radius: 9px;
+    font-weight: bold;
+}
+
+.search-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.search-actions button {
+    flex: 1;
+    min-width: 100px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+    gap: 12px;
+}
+
+.service {
+    background: white;
+    border-radius: 12px;
+    padding: 17px 12px;
+    text-align: center;
+    box-shadow: 0 2px 8px #0001;
+    cursor: pointer;
+    border: 1px solid #e5eaf2;
+}
+
+.service:active {
+    transform: scale(.98);
+}
+
+.service .emoji {
+    font-size: 29px;
+}
+
+.service h3 {
+    font-size: 15px;
+    margin: 9px 0 5px;
+}
+
+.service p {
+    font-size: 12px;
+    color: #69788e;
+    margin: 0;
+}
+
+.status {
+    font-size: 10px;
+    color: #0879d1;
+    margin-top: 9px;
+}
+
+.panel {
+    background: white;
+    padding: 17px;
+    border-radius: 12px;
+    margin: 16px 0;
+    box-shadow: 0 2px 8px #0001;
+}
+
+footer {
+    background: #07152f;
+    color: white;
+    text-align: center;
+    padding: 23px;
+    font-size: 12px;
+    margin-top: 25px;
+}
+
+.small {
+    font-size: 12px;
+    color: #69788e;
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 12px;
+    }
+
+    header h1 {
+        font-size: 23px;
+    }
+}
 </style>
 </head>
 
 <body>
 
 <header>
-<div class="logo">ficsdavid</div>
-<h1>ficsdavid app</h1>
-<p id="tagline">one digital platform. many services.</p>
+    <div class="logo">FICSDavid</div>
+    <h1>FICSDavid Tanzania</h1>
+    <p id="tagline">One digital platform. Many services.</p>
 </header>
 
 <nav>
-<button onclick="setlanguage('en')">english</button>
-<button onclick="setlanguage('sw')">kiswahili</button>
+    <button type="button" onclick="setLanguage('en')">
+        English
+    </button>
+
+    <button type="button" onclick="setLanguage('sw')">
+        Kiswahili
+    </button>
 </nav>
 
 <main class="container">
 
 <section class="searchbox">
-<h2 id="searchtitle">tanzania search engine</h2>
-<p class="small" id="searchdescription">search information across the internet.</p>
 
-<select id="category">
-<option value="web">web search</option>
-<option value="images">images</option>
-<option value="videos">videos</option>
-<option value="news">news</option>
-<option value="education">education</option>
-</select>
+    <h2 id="searchtitle">Tanzania Search Engine</h2>
 
-<input id="query" type="search" placeholder="what are you looking for?">
+    <p class="small" id="searchdescription">
+        Search information across the internet.
+    </p>
 
-<div class="search-actions">
-<button class="primary" onclick="searchweb()">search</button>
-<button class="primary" onclick="voicesearch()">🎤 voice</button>
-</div>
-<p class="small">search results are provided by google. internet connection is required.</p>
+    <select id="category">
+        <option value="web">Web Search</option>
+        <option value="images">Images</option>
+        <option value="videos">Videos</option>
+        <option value="news">News</option>
+        <option value="education">Education</option>
+    </select>
+
+    <input
+        id="query"
+        type="search"
+        placeholder="What are you looking for?"
+        onkeydown="if(event.key === 'Enter') searchWeb()"
+    >
+
+    <div class="search-actions">
+
+        <button
+            class="primary"
+            id="searchbutton"
+            type="button"
+            onclick="searchWeb()">
+            Search
+        </button>
+
+        <button
+            class="primary"
+            id="voicebutton"
+            type="button"
+            onclick="voiceSearch()">
+            🎤 Voice
+        </button>
+
+    </div>
+
+    <p class="small" id="searchnote">
+        Search results are provided by Google.
+        Internet connection is required.
+    </p>
+
 </section>
 
 <section>
-<h2 id="servicestitle">our digital services</h2>
-<div class="grid">
 
-<div class="service" onclick="openservice('search')">
-<div class="emoji">🌍</div><h3>tanzania search</h3>
-<p>web and information search</p><div class="status">search available</div>
-</div>
+    <h2 id="servicestitle">Our Digital Services</h2>
 
-<div class="service" onclick="openservice('calls')">
-<div class="emoji">📞</div><h3>voice calls</h3>
-<p>internet voice communication</p><div class="status">integration required</div>
-</div>
+    <div class="grid">
 
-<div class="service" onclick="openservice('video')">
-<div class="emoji">📹</div><h3>video calls</h3>
-<p>online video communication</p><div class="status">integration required</div>
-</div>
+        <div class="service" onclick="openService('search')">
+            <div class="emoji">🌍</div>
+            <h3>Tanzania Search</h3>
+            <p>Web and information search</p>
+            <div class="status">Search available</div>
+        </div>
 
-<div class="service" onclick="openservice('chat')">
-<div class="emoji">💬</div><h3>messages & chat</h3>
-<p>communication services</p><div class="status">integration required</div>
-</div>
+        <div class="service" onclick="openService('calls')">
+            <div class="emoji">📞</div>
+            <h3>Voice Calls</h3>
+            <p>Internet voice communication</p>
+            <div class="status">Integration required</div>
+        </div>
 
-<div class="service" onclick="openservice('contacts')">
-<div class="emoji">👥</div><h3>contacts</h3>
-<p>contact management</p><div class="status">integration required</div>
-</div>
+        <div class="service" onclick="openService('video')">
+            <div class="emoji">📹</div>
+            <h3>Video Calls</h3>
+            <p>Online video communication</p>
+            <div class="status">Integration required</div>
+        </div>
 
-<div class="service" onclick="openservice('wallet')">
-<div class="emoji">💳</div><h3>ficsdavid wallet</h3>
-<p>digital wallet</p><div class="status">backend required</div>
-</div>
+        <div class="service" onclick="openService('chat')">
+            <div class="emoji">💬</div>
+            <h3>Messages & Chat</h3>
+            <p>Communication services</p>
+            <div class="status">Integration required</div>
+        </div>
 
-<div class="service" onclick="openservice('payments')">
-<div class="emoji">💸</div><h3>direct payments</h3>
-<p>digital money transfers</p><div class="status">provider integration required</div>
-</div>
+        <div class="service" onclick="openService('contacts')">
+            <div class="emoji">👥</div>
+            <h3>Contacts</h3>
+            <p>Contact management</p>
+            <div class="status">Integration required</div>
+        </div>
 
-<div class="service" onclick="openservice('mobile')">
-<div class="emoji">📱</div><h3>mobile money</h3>
-<p>m-pesa, airtel money, mixx by yas</p><div class="status">provider integration required</div>
-</div>
+        <div class="service" onclick="openService('wallet')">
+            <div class="emoji">💳</div>
+            <h3>FICSDavid Wallet</h3>
+            <p>Digital wallet</p>
+            <div class="status">Backend required</div>
+        </div>
 
-<div class="service" onclick="openservice('bundles')">
-<div class="emoji">📶</div><h3>data bundles</h3>
-<p>internet packages</p><div class="status">provider integration required</div>
-</div>
+        <div class="service" onclick="openService('payments')">
+            <div class="emoji">💸</div>
+            <h3>Direct Payments</h3>
+            <p>Digital money transfers</p>
+            <div class="status">Provider integration required</div>
+        </div>
 
-<div class="service" onclick="openservice('history')">
-<div class="emoji">📋</div><h3>transaction history</h3>
-<p>payment records</p><div class="status">backend required</div>
-</div>
+        <div class="service" onclick="openService('mobile')">
+            <div class="emoji">📱</div>
+            <h3>Mobile Money</h3>
+            <p>M-Pesa, Airtel Money, Mixx by Yas</p>
+            <div class="status">Provider integration required</div>
+        </div>
 
-<div class="service" onclick="openservice('security')">
-<div class="emoji">🔐</div><h3>account security</h3>
-<p>password, pin and verification</p><div class="status">backend required</div>
-</div>
+        <div class="service" onclick="openService('bundles')">
+            <div class="emoji">📶</div>
+            <h3>Data Bundles</h3>
+            <p>Internet packages</p>
+            <div class="status">Provider integration required</div>
+        </div>
 
-<div class="service" onclick="openservice('caller')">
-<div class="emoji">🆔</div><h3>username caller id</h3>
-<p>username identification</p><div class="status">integration required</div>
-</div>
+        <div class="service" onclick="openService('history')">
+            <div class="emoji">📋</div>
+            <h3>Transaction History</h3>
+            <p>Payment records</p>
+            <div class="status">Backend required</div>
+        </div>
 
-<div class="service" onclick="openservice('assistant')">
-<div class="emoji">🤖</div><h3>ai assistant</h3>
-<p>intelligent digital assistance</p><div class="status">ai connection required</div>
-</div>
+        <div class="service" onclick="openService('security')">
+            <div class="emoji">🔐</div>
+            <h3>Account Security</h3>
+            <p>Password, PIN and verification</p>
+            <div class="status">Backend required</div>
+        </div>
 
-<div class="service" onclick="openservice('support')">
-<div class="emoji">🎧</div><h3>support team</h3>
-<p>customer support and help</p><div class="status">setup required</div>
-</div>
+        <div class="service" onclick="openService('caller')">
+            <div class="emoji">🆔</div>
+            <h3>Username Caller ID</h3>
+            <p>Username identification</p>
+            <div class="status">Integration required</div>
+        </div>
 
-<div class="service" onclick="openservice('numbers')">
-<div class="emoji">🔢</div><h3>number services</h3>
-<p>phone number services</p><div class="status">integration required</div>
-</div>
+        <div class="service" onclick="openService('assistant')">
+            <div class="emoji">🤖</div>
+            <h3>AI Assistant</h3>
+            <p>Intelligent digital assistance</p>
+            <div class="status">AI connection required</div>
+        </div>
 
-<div class="service" onclick="openservice('help')">
-<div class="emoji">❓</div><h3>help centre</h3>
-<p>guides and troubleshooting</p><div class="status">basic help available</div>
-</div>
+        <div class="service" onclick="openService('support')">
+            <div class="emoji">🎧</div>
+            <h3>Support Team</h3>
+            <p>Customer support and help</p>
+            <div class="status">Setup required</div>
+        </div>
 
-</div>
+        <div class="service" onclick="openService('numbers')">
+            <div class="emoji">🔢</div>
+            <h3>Number Services</h3>
+            <p>Phone number services</p>
+            <div class="status">Integration required</div>
+        </div>
+
+        <div class="service" onclick="openService('help')">
+            <div class="emoji">❓</div>
+            <h3>Help Centre</h3>
+            <p>Guides and troubleshooting</p>
+            <div class="status">Basic help available</div>
+        </div>
+
+    </div>
 </section>
 
 <section class="panel">
-<h2 id="accounttitle">ficsdavid account</h2>
-<p id="accounttext">account registration and secure login will be enabled after backend integration.</p>
-<p class="small">security features planned: username, password, 4 or 6-digit pin, pin change, identity verification and temporary account lockout.</p>
+
+    <h2 id="accounttitle">FICSDavid Account</h2>
+
+    <p id="accounttext">
+        Account registration and secure login will be enabled
+        after backend integration.
+    </p>
+
+    <p class="small">
+        Planned security features: username, password,
+        4 or 6-digit PIN, PIN change, identity verification
+        and temporary account lockout.
+    </p>
+
 </section>
 
 <section class="panel">
-<h2 id="supporttitle">about ficsdavid</h2>
-<p>ficsdavid is a digital platform designed to connect people with useful internet, communication and financial services.</p>
-<p><b>founder:</b> david laurent mabula</p>
-<p><b>initial market:</b> tanzania</p>
+
+    <h2 id="abouttitle">About FICSDavid</h2>
+
+    <p>
+        FICSDavid is a digital platform designed to connect
+        people with useful internet, communication and
+        financial services.
+    </p>
+
+    <p><b>Founder:</b> David Laurent Mabula</p>
+
+    <p><b>Initial market:</b> Tanzania</p>
+
 </section>
 
 </main>
 
 <footer>
-<p>© 2026 ficsdavid tanzania. all rights reserved.</p>
-<p>building a connected digital future.</p>
+    <p>© 2026 FICSDavid Tanzania. All rights reserved.</p>
+    <p>Building a connected digital future.</p>
 </footer>
 
 <script>
-let language = "en";
 
-function searchweb(){
- const q=document.getelementbyid("query").value.trim();
- const category=document.getelementbyid("category").value;
- if(!q){
- alert(language==="sw"?"tafadhali andika unachotafuta.":"please enter your search.");
- return;
- }
- let suffix="";
- if(category==="images") suffix="&udm=2";
- if(category==="videos") suffix="&udm=7";
- if(category==="news") suffix="&tbm=nws";
- if(category==="education") suffix="&as_sitesearch=edu";
- window.open("https://www.google.com/search?q="+encodeuricomponent(q)+suffix,"_blank");
+"use strict";
+
+let currentLanguage = "en";
+
+/* SEARCH FUNCTION */
+
+function searchWeb() {
+
+    const queryInput = document.getElementById("query");
+    const categoryInput = document.getElementById("category");
+
+    const query = queryInput.value.trim();
+    const category = categoryInput.value;
+
+    if (!query) {
+        alert(
+            currentLanguage === "sw"
+            ? "Tafadhali andika unachotafuta."
+            : "Please enter your search."
+        );
+
+        queryInput.focus();
+        return;
+    }
+
+    let searchQuery = query;
+    let extraParameters = "";
+
+    if (category === "images") {
+        extraParameters = "&udm=2";
+    }
+
+    if (category === "videos") {
+        extraParameters = "&udm=7";
+    }
+
+    if (category === "news") {
+        extraParameters = "&tbm=nws";
+    }
+
+    if (category === "education") {
+        searchQuery = query + " education";
+    }
+
+    const searchUrl =
+        "https://www.google.com/search?q=" +
+        encodeURIComponent(searchQuery) +
+        extraParameters;
+
+    window.open(searchUrl, "_blank");
+
 }
 
-function voicesearch(){
- const speechrecognition=window.speechrecognition||window.webkitspeechrecognition;
- if(!speechrecognition){
- alert("voice search is not supported by this browser. please use text search.");
- return;
- }
- const recognition=new speechrecognition();
- recognition.lang=language==="sw"?"sw-tz":"en-us";
- recognition.onresult=function(event){
- document.getelementbyid("query").value=event.results[0][0].transcript;
- searchweb();
- };
- recognition.onerror=function(){
- alert("voice search failed. please try again.");
- };
- recognition.start();
+/* VOICE SEARCH FUNCTION */
+
+function voiceSearch() {
+
+    const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+
+        alert(
+            currentLanguage === "sw"
+            ? "Voice search haiungwi mkono na browser hii. Tafadhali tumia maandishi."
+            : "Voice search is not supported by this browser. Please use text search."
+        );
+
+        return;
+    }
+
+    const recognition = new SpeechRecognition();
+
+    recognition.lang =
+        currentLanguage === "sw" ? "sw-TZ" : "en-US";
+
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = function(event) {
+
+        const spokenText = event.results[0][0].transcript;
+
+        document.getElementById("query").value = spokenText;
+
+        searchWeb();
+
+    };
+
+    recognition.onerror = function() {
+
+        alert(
+            currentLanguage === "sw"
+            ? "Voice search imeshindwa. Jaribu tena."
+            : "Voice search failed. Please try again."
+        );
+
+    };
+
+    recognition.start();
+
 }
 
-function openservice(service){
- const messages={
- search:"use the tanzania search engine above.",
- calls:"internet voice calls require a secure communication server and user accounts.",
- video:"video calls require a video communication server and permissions.",
- chat:"messaging requires a secure backend and database.",
- contacts:"contact management requires account permissions and secure storage.",
- wallet:"ficsdavid wallet requires a secure financial backend.",
- payments:"payments require authorized payment-provider integration.",
- mobile:"m-pesa, airtel money and mixx by yas require official provider integration.",
- bundles:"data bundle purchases require mobile network operator integration.",
- history:"transaction history will be available after secure backend integration.",
- security:"account registration, password and pin verification require secure authentication.",
- caller:"username caller id requires account and communication integration.",
- assistant:"the ai assistant requires a connected ai service.",
- support:"support team contact channels need to be configured.",
- numbers:"number services require telecommunications integration.",
- help:"for assistance, use the help centre. more support features are being prepared."
- };
- alert(messages[service]||"service information is being prepared.");
+/* SERVICE INFORMATION */
+
+function openService(service) {
+
+    const messages = {
+
+        search: {
+            en: "Use the Tanzania Search Engine above.",
+            sw: "Tumia injini ya utafutaji ya Tanzania hapo juu."
+        },
+
+        calls: {
+            en: "Internet voice calls require a secure communication server and user accounts.",
+            sw: "Simu za mtandaoni zinahitaji server salama na akaunti za watumiaji."
+        },
+
+        video: {
+            en: "Video calls require a video communication server and permissions.",
+            sw: "Video calls zinahitaji mfumo maalumu wa mawasiliano ya video na ruhusa."
+        },
+
+        chat: {
+            en: "Messaging requires a secure backend and database.",
+            sw: "Huduma ya ujumbe inahitaji backend salama na database."
+        },
+
+        contacts: {
+            en: "Contact management requires account permissions and secure storage.",
+            sw: "Usimamizi wa contacts unahitaji ruhusa na hifadhi salama."
+        },
+
+        wallet: {
+            en: "FICSDavid Wallet requires a secure financial backend.",
+            sw: "FICSDavid Wallet inahitaji mfumo salama wa kifedha."
+        },
+
+        payments: {
+            en: "Payments require authorized payment-provider integration.",
+            sw: "Malipo yanahitaji kuunganishwa na watoa huduma walioidhinishwa."
+        },
+
+        mobile: {
+            en: "M-Pesa, Airtel Money and Mixx by Yas require official provider integration.",
+            sw: "M-Pesa, Airtel Money na Mixx by Yas zinahitaji muunganiko rasmi wa watoa huduma."
+        },
+
+        bundles: {
+            en: "Data bundle purchases require mobile network operator integration.",
+            sw: "Ununuzi wa vifurushi vya data unahitaji muunganiko na kampuni za simu."
+        },
+
+        history: {
+            en: "Transaction history will be available after secure backend integration.",
+            sw: "Historia ya miamala itapatikana baada ya kuunganisha backend salama."
+        },
+
+        security: {
+            en: "Account registration, password and PIN verification require secure authentication.",
+            sw: "Usajili wa akaunti, password na PIN vinahitaji mfumo salama wa uthibitishaji."
+        },
+
+        caller: {
+            en: "Username Caller ID requires account and communication integration.",
+            sw: "Username Caller ID inahitaji muunganiko wa akaunti na mawasiliano."
+        },
+
+        assistant: {
+            en: "The AI Assistant requires a connected AI service.",
+            sw: "AI Assistant inahitaji kuunganishwa na huduma ya AI."
+        },
+
+        support: {
+            en: "Support team contact channels need to be configured.",
+            sw: "Njia za kuwasiliana na timu ya msaada zinahitaji kuandaliwa."
+        },
+
+        numbers: {
+            en: "Number services require telecommunications integration.",
+            sw: "Huduma za namba zinahitaji muunganiko wa mawasiliano."
+        },
+
+        help: {
+            en: "Welcome to the FICSDavid Help Centre. More support features are being prepared.",
+            sw: "Karibu kwenye kituo cha msaada cha FICSDavid. Huduma zaidi za msaada zinaandaliwa."
+        }
+
+    };
+
+    const selectedMessage = messages[service];
+
+    if (!selectedMessage) {
+        alert("Service information is being prepared.");
+        return;
+    }
+
+    alert(
+        currentLanguage === "sw"
+        ? selectedMessage.sw
+        : selectedMessage.en
+    );
+
 }
 
-function setlanguage(lang){
- language=lang;
- const sw=lang==="sw";
- document.documentelement.lang=lang;
- document.getelementbyid("tagline").textcontent=sw?"jukwaa moja la kidijitali. huduma nyingi.":"one digital platform. many services.";
- document.getelementbyid("searchtitle").textcontent=sw?"injini ya utafutaji tanzania":"tanzania search engine";
- document.getelementbyid("searchdescription").textcontent=sw?"tafuta taarifa mbalimbali kupitia mtandao.":"search information across the internet.";
- document.getelementbyid("servicestitle").textcontent=sw?"huduma zetu za kidijitali":"our digital services";
- document.getelementbyid("accounttitle").textcontent=sw?"akaunti ya ficsdavid":"ficsdavid account";
- document.getelementbyid("accounttext").textcontent=sw?"usajili na kuingia kwenye akaunti vitawezeshwa baada ya kuunganisha mfumo wa nyuma.":"account registration and secure login will be enabled after backend integration.";
- document.getelementbyid("supporttitle").textcontent=sw?"kuhusu ficsdavid":"about ficsdavid";
- document.getelementbyid("query").placeholder=sw?"unatafuta nini?":"what are you looking for?";
+/* LANGUAGE FUNCTION */
+
+function setLanguage(language) {
+
+    currentLanguage = language;
+
+    const isSwahili = language === "sw";
+
+    document.documentElement.lang = language;
+
+    document.getElementById("tagline").textContent =
+        isSwahili
+        ? "Jukwaa moja la kidijitali. Huduma nyingi."
+        : "One digital platform. Many services.";
+
+    document.getElementById("searchtitle").textContent =
+        isSwahili
+        ? "Injini ya Utafutaji Tanzania"
+        : "Tanzania Search Engine";
+
+    document.getElementById("searchdescription").textContent =
+        isSwahili
+        ? "Tafuta taarifa mbalimbali kupitia mtandao."
+        : "Search information across the internet.";
+
+    document.getElementById("servicestitle").textContent =
+        isSwahili
+        ? "Huduma Zetu za Kidijitali"
+        : "Our Digital Services";
+
+    document.getElementById("accounttitle").textContent =
+        isSwahili
+        ? "Akaunti ya FICSDavid"
+        : "FICSDavid Account";
+
+    document.getElementById("accounttext").textContent =
+        isSwahili
+        ? "Usajili na kuingia kwenye akaunti vitawezeshwa baada ya kuunganisha backend."
+        : "Account registration and secure login will be enabled after backend integration.";
+
+    document.getElementById("abouttitle").textContent =
+        isSwahili
+        ? "Kuhusu FICSDavid"
+        : "About FICSDavid";
+
+    document.getElementById("query").placeholder =
+        isSwahili
+        ? "Unatafuta nini?"
+        : "What are you looking for?";
+
+    document.getElementById("searchbutton").textContent =
+        isSwahili ? "Tafuta" : "Search";
+
+    document.getElementById("voicebutton").textContent =
+        isSwahili ? "🎤 Sauti" : "🎤 Voice";
+
+    document.getElementById("searchnote").textContent =
+        isSwahili
+        ? "Matokeo ya utafutaji yanatolewa na Google. Unahitaji intaneti."
+        : "Search results are provided by Google. Internet connection is required.";
+
 }
+
 </script>
 
 </body>
-</html>
+ </html>
