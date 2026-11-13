@@ -34,7 +34,7 @@ The account foundation is designed for one master account using either a verifie
 - `GET /api/auth/me` — returns the signed-in account.
 - `POST /api/auth/logout` — revokes the current session.
 
-Security measures in this starter include PBKDF2 password hashing, random verification codes stored as salted hashes, short code expiry, limited verification attempts, rate limiting, hashed session tokens, secure HttpOnly cookies, same-origin checks for state-changing requests, and basic security headers.
+Security measures in this starter include PBKDF2 password hashing, PBKDF2-SHA256 hashes for random verification codes, short code expiry, limited verification attempts, rate limiting, hashed session tokens, secure HttpOnly cookies, same-origin checks for state-changing requests, and basic security headers.
 
 This is an initial foundation, not a completed or independently audited authentication product. Password reset, multi-factor authentication, account recovery, PIN controls, administrator controls and independent penetration testing remain outstanding.
 
@@ -42,8 +42,8 @@ This is an initial foundation, not a completed or independently audited authenti
 
 The API is structured as same-origin Pages Functions and uses a D1 database binding named `DB`.
 
-1. Create a D1 database named `ficsdavid-main` in the deployment account.
-2. Replace `REPLACE_WITH_CLOUDFLARE_D1_DATABASE_ID` in `wrangler.toml` with the real database ID.
+1. Confirm that the D1 database ID already recorded in `wrangler.toml` matches a database in the Cloudflare account used for deployment. The ID is populated in the repository, but its existence and account binding have not been verified from GitHub.
+2. If no matching database exists, create `ficsdavid-main` and update `database_id` in `wrangler.toml` with its actual ID.
 3. Apply the database migration: `npx wrangler d1 migrations apply ficsdavid-main --remote`.
 4. Bind that database to the Pages project using the binding name `DB`.
 5. Configure the email and SMS delivery endpoints as HTTPS environment variables named `EMAIL_DELIVERY_URL` and `SMS_DELIVERY_URL`. Add their matching secret tokens as `EMAIL_DELIVERY_TOKEN` and `SMS_DELIVERY_TOKEN`.
