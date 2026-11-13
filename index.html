@@ -641,13 +641,29 @@ async function searchVideos(query, list, count, signal) {
         const info = page.imageinfo && page.imageinfo[0] ? page.imageinfo[0] : {};
         const meta = info.extmetadata || {};
         const description = meta.ShortDescription && meta.ShortDescription.value ? meta.ShortDescription.value : "";
+        const artist = meta.Artist && meta.Artist.value
+            ? meta.Artist.value.replace(/<[^>]*>/g, "").slice(0, 180) : "";
+        const licenseName = meta.LicenseShortName && meta.LicenseShortName.value
+            ? meta.LicenseShortName.value.replace(/<[^>]*>/g, "").slice(0, 80) : "";
+        const licenseUrl = meta.LicenseUrl && meta.LicenseUrl.value
+            ? safeExternalUrl(meta.LicenseUrl.value) : "#";
+        const attribution = [];
+        if (artist) attribution.push("Creator: " + escapeResultText(artist));
+        if (licenseName) {
+            const safeLicenseName = escapeResultText(licenseName);
+            attribution.push(licenseUrl !== "#"
+                ? 'License: <a href="' + escapeResultText(licenseUrl) + '" target="_blank" rel="noopener noreferrer">' + safeLicenseName + '</a>'
+                : "License: " + safeLicenseName);
+        }
+        const attributionHtml = attribution.length
+            ? '<p class="result-source">' + attribution.join(" · ") + '</p>' : "";
         const thumb = info.thumburl ? '<img src="' + escapeResultText(safeExternalUrl(info.thumburl)) + '" alt="" loading="lazy">' : "";
         const fileUrl = safeExternalUrl(info.descriptionurl || info.url || "#");
         return '<article class="result-card">' + thumb + '<div><h3><a href="' +
             escapeResultText(fileUrl) + '" target="_blank" rel="noopener noreferrer">' +
             escapeResultText(page.title.replace(/^File:/, "")) +
             '</a></h3><p>' + escapeResultText(description.replace(/<[^>]*>/g, "").slice(0, 250)) +
-            '</p><div class="result-source">FICSDavid Video result</div></div></article>';
+            '</p>' + attributionHtml + '<div class="result-source">FICSDavid Video search result</div></div></article>';
     }).join("");
 }
 
@@ -667,13 +683,17 @@ async function searchNews(query, list, count, signal) {
     list.innerHTML = articles.map(article => {
         const link = safeExternalUrl(article.url || "#");
         const date = article.seendate ? escapeResultText(article.seendate) : "";
+        const sourceDomain = typeof article.domain === "string" ? article.domain : "";
         const image = article.socialimage ? '<img src="' + escapeResultText(safeExternalUrl(article.socialimage)) + '" alt="" loading="lazy">' : "";
         return '<article class="result-card">' + image + '<div><h3><a href="' +
             escapeResultText(link) + '" target="_blank" rel="noopener noreferrer">' +
             escapeResultText(article.title || "News article") + '</a></h3><p>' +
             (date ? date : (currentLanguage === "sw" ? "Habari iliyochapishwa" : "Published article")) +
-            '</p><div class="result-source">FICSDavid News · ' +
-            (currentLanguage === "sw" ? "Chanzo cha habari" : "News source") + '</div></div></article>';
+            '</p><div class="result-source">' +
+            (sourceDomain
+                ? (currentLanguage === "sw" ? "Chanzo: " : "Source: ") + escapeResultText(sourceDomain)
+                : (currentLanguage === "sw" ? "Matokeo ya habari ya FICSDavid" : "FICSDavid News result")) +
+            '</div></div></article>';
     }).join("");
 }
 
@@ -686,7 +706,7 @@ function emptyResults() {
 function safeExternalUrl(value) {
     try {
         const parsed = new URL(String(value || ""), window.location.href);
-        return (parsed.protocol === "https:" || parsed.protocol === "http:") ? parsed.href : "#";
+        return parsed.protocol === "https:" ? parsed.href : "#";
     } catch (error) {
         return "#";
     }
