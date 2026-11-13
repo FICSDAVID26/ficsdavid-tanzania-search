@@ -1,4 +1,5 @@
 const PASSWORD_ITERATIONS = 310000;
+const CODE_HASH_ITERATIONS = 120000;
 const SESSION_SECONDS = 60 * 60 * 24 * 7;
 const CODE_SECONDS = 10 * 60;
 const MAX_CODE_ATTEMPTS = 5;
@@ -168,7 +169,7 @@ async function requestCode(request, env) {
   const code = String(crypto.getRandomValues(new Uint32Array(1))[0] % 1000000).padStart(6, "0");
   const saltBytes = crypto.getRandomValues(new Uint8Array(16));
   const salt = base64url(saltBytes);
-  const codeHash = await sha256(salt + ":" + code);
+  const codeHash = await derivePassword(code, salt, CODE_HASH_ITERATIONS);
   const id = crypto.randomUUID();
   const now = Math.floor(Date.now() / 1000);
 
@@ -206,7 +207,7 @@ async function verifyCode(request, env) {
   if (!row || row.consumed_at || row.expires_at <= now || row.attempts >= MAX_CODE_ATTEMPTS) {
     return json({ error: "Code is invalid or expired. Request a new code." }, 400);
   }
-  const hash = await sha256(row.code_salt + ":" + code);
+  const hash = await derivePassword(code, row.code_salt, CODE_HASH_ITERATIONS);
   if (!constantTimeEqual(hash, row.code_hash)) {
     await env.DB.prepare("UPDATE verification_codes SET attempts=attempts+1 WHERE id=?").bind(id).run();
     return json({ error: "Incorrect code." }, 400);
