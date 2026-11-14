@@ -706,7 +706,9 @@ function emptyResults() {
 function safeExternalUrl(value) {
     try {
         const parsed = new URL(String(value || ""), window.location.href);
-        return parsed.protocol === "https:" ? parsed.href : "#";
+        // Reject non-HTTPS destinations and credential-bearing URLs.
+        if (parsed.protocol !== "https:" || parsed.username || parsed.password) return "#";
+        return parsed.href;
     } catch (error) {
         return "#";
     }
