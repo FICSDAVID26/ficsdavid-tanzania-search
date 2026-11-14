@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#07152f">
+<meta name="theme-color" content="#3b1b68">
 
 <meta name="description" content="FICSDavid is a digital platform bringing search, communication and future digital services together. Starting in Tanzania, built for global access.">
 <title>FICSDavid | One Digital Platform</title>
@@ -94,8 +94,8 @@ input, select {
     border: 1px solid #d7e2f0;
     border-radius: 12px;
     padding: 13px 8px;
-    background: #f7faff;
-    color: #183253;
+    background: #fbf9fd;
+    color: var(--fics-purple);
     font-weight: 700;
     min-height: 76px;
 }
@@ -107,9 +107,9 @@ input, select {
 }
 
 .search-type.active {
-    border: 2px solid #0879d1;
-    background: #e8f4ff;
-    color: #075da4;
+    border: 2px solid var(--fics-gold);
+    background: var(--fics-gold-soft);
+    color: var(--fics-purple);
 }
 
 button {
@@ -117,7 +117,7 @@ button {
 }
 
 .primary {
-    background: #0879d1;
+    background: var(--fics-purple);
     color: white;
     border: 0;
     padding: 13px 18px;
@@ -214,10 +214,10 @@ footer {
 .result-card { display:flex; gap:12px; padding:14px 0; border-bottom:1px solid #e5eaf2; }
 .result-card img { width:92px; height:72px; object-fit:cover; border-radius:8px; flex-shrink:0; }
 .result-card h3 { margin:0 0 6px; font-size:16px; }
-.result-card h3 a { color:#075da4; text-decoration:none; }
+.result-card h3 a { color:var(--fics-purple); text-decoration:none; }
 .result-card p { margin:0; font-size:13px; line-height:1.5; color:#526176; }
 .result-source { font-size:11px; color:#0879d1; margin-top:6px; }
-.result-message { padding:14px; background:#f7faff; border-radius:10px; color:#526176; font-size:13px; }
+.result-message { padding:14px; background:#fbf9fd; border:1px solid var(--fics-line); border-radius:10px; color:#526176; font-size:13px; }
 
 
 /* FICSDAVID V0.2 BRAND FOUNDATION — preserves existing service structure */
@@ -230,6 +230,7 @@ footer {
     --fics-page: #f7f4fb;
     --fics-ink: #241b32;
     --fics-line: #e8dfef;
+    --fics-gold-soft: #fff8e8;
 }
 body { background: var(--fics-page); color: var(--fics-ink); }
 header {
