@@ -218,6 +218,49 @@ footer {
 .result-source { font-size:11px; color:#0879d1; margin-top:6px; }
 .result-message { padding:14px; background:#f7faff; border-radius:10px; color:#526176; font-size:13px; }
 
+
+/* FICSDAVID V0.2 BRAND FOUNDATION — preserves existing service structure */
+:root {
+    --fics-purple: #3b1b68;
+    --fics-purple-deep: #211039;
+    --fics-purple-mid: #542b86;
+    --fics-gold: #d8b45a;
+    --fics-gold-deep: #9a7422;
+    --fics-page: #f7f4fb;
+    --fics-ink: #241b32;
+    --fics-line: #e8dfef;
+}
+body { background: var(--fics-page); color: var(--fics-ink); }
+header {
+    background: linear-gradient(135deg, var(--fics-purple-deep), var(--fics-purple-mid));
+    border-bottom: 3px solid var(--fics-gold);
+}
+.logo { color: var(--fics-gold); letter-spacing: .3px; }
+header p { color: #f1e8ff; }
+nav { background: var(--fics-purple); border-bottom: 1px solid var(--fics-gold); }
+nav button { border-color: var(--fics-gold); }
+nav button:focus-visible, button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+    outline: 3px solid var(--fics-gold);
+    outline-offset: 2px;
+}
+h2 { color: var(--fics-purple); }
+.searchbox, .panel, .service { border: 1px solid var(--fics-line); }
+.search-type.active {
+    border: 2px solid var(--fics-gold);
+    background: #fff8e8;
+    color: var(--fics-purple);
+}
+.primary { background: var(--fics-purple); border: 1px solid var(--fics-gold); }
+.primary:hover { background: var(--fics-purple-mid); }
+.status, .result-source { color: var(--fics-gold-deep); }
+footer { background: var(--fics-purple-deep); border-top: 3px solid var(--fics-gold); }
+@media (max-width: 480px) {
+    header { padding: 20px 14px 22px; }
+    .logo { font-size: 27px; }
+    nav { gap: 8px; }
+    nav button { padding: 9px 12px; }
+}
+
 </style>
 </head>
 
