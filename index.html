@@ -218,6 +218,15 @@ footer {
 .result-source { font-size:11px; color:#0879d1; margin-top:6px; }
 .result-message { padding:14px; background:#f7faff; border-radius:10px; color:#526176; font-size:13px; }
 
+
+.account-form{display:grid;gap:8px;margin:14px 0;padding:14px;border:1px solid #e2e9f2;border-radius:10px;background:#fbfdff}
+.account-form label{font-size:13px;font-weight:700;color:#243954}
+.account-form input,.account-form select{margin:0}
+#registerDetails{margin-top:14px;padding:12px;border:1px solid #dce5f0;border-radius:10px}
+#registerDetails summary{font-weight:700;color:#075da4;cursor:pointer}
+#accountStatus[data-state="error"]{background:#fff1f0;color:#9b241c}
+#accountStatus[data-state="success"]{background:#effaf2;color:#176b35}
+
 </style>
 </head>
 
@@ -457,21 +466,45 @@ footer {
     </div>
 </section>
 
-<section class="panel">
-
+<section class="panel" id="accountSection">
     <h2 id="accounttitle">FICSDavid Account</h2>
-
-    <p id="accounttext">
-        Public website access is available. Personal registration and secure login are being built and are not active yet.
-    </p>
-
-    <p class="small">
-        Planned security features: username, password,
-        4 or 6-digit PIN, PIN change, identity verification
-        and temporary account lockout.
-    </p>
-    <p class="small" id="accountSafetyNotice">Safety notice: Account registration and login are not active yet. Do not enter or share passwords, PINs, one-time codes or financial details on this page.</p>
-
+    <p id="accounttext">Sign in to your FICSDavid master account, or create one after contact verification is enabled.</p>
+    <div id="accountStatus" class="result-message" role="status" aria-live="polite">Checking account service…</div>
+    <div id="signedInPanel" hidden>
+        <p id="signedInText"></p>
+        <button class="primary" type="button" onclick="accountLogout()">Sign out</button>
+    </div>
+    <div id="accountForms">
+        <form id="loginForm" class="account-form">
+            <h3 id="loginHeading">Sign in</h3>
+            <label for="loginContactType">Contact type</label>
+            <select id="loginContactType"><option value="email">Email</option><option value="phone">Phone number</option></select>
+            <label for="loginContact">Email or phone number</label>
+            <input id="loginContact" type="text" autocomplete="username" required maxlength="254" placeholder="Email or +255…">
+            <label for="loginPassword">Password</label>
+            <input id="loginPassword" type="password" autocomplete="current-password" required maxlength="128">
+            <button class="primary" type="submit" id="loginButton">Sign in</button>
+        </form>
+        <details id="registerDetails">
+            <summary id="registerSummary">Create a new account</summary>
+            <form id="registerForm" class="account-form">
+                <label for="registerContactType">Verify using</label>
+                <select id="registerContactType"><option value="email">Email</option><option value="phone">Phone number</option></select>
+                <label for="registerContact">Email or phone number</label>
+                <input id="registerContact" type="text" autocomplete="email" required maxlength="254" placeholder="Email or +255…">
+                <button class="primary" type="button" id="requestCodeButton" onclick="requestRegistrationCode()">Send verification code</button>
+                <label for="verificationCode">Six-digit verification code</label>
+                <input id="verificationCode" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="000000">
+                <button type="button" id="verifyCodeButton" onclick="verifyRegistrationCode()">Verify code</button>
+                <label for="registerName">Display name</label>
+                <input id="registerName" type="text" autocomplete="name" maxlength="80" placeholder="Your name">
+                <label for="registerPassword">Create password (at least 12 characters)</label>
+                <input id="registerPassword" type="password" autocomplete="new-password" minlength="12" maxlength="128">
+                <button class="primary" type="submit" id="registerButton">Create account</button>
+            </form>
+        </details>
+    </div>
+    <p class="small" id="accountSafetyNotice">Security: use a unique password. Never share your password or verification code. FICSDavid will never ask you to send them in chat.</p>
 </section>
 
 <section class="panel">
@@ -913,6 +946,141 @@ function openService(service) {
 function closeServicePanel() {
     document.getElementById("servicePanel").hidden = true;
 }
+
+
+/* MASTER ACCOUNT: same-origin API; credentials are never stored in browser storage. */
+let registrationVerificationId = null;
+let accountServiceReady = false;
+
+function accountMessage(message, state) {
+    const el = document.getElementById("accountStatus");
+    el.textContent = message;
+    el.dataset.state = state || "info";
+}
+async function accountApi(path, method, payload) {
+    const response = await fetch(path, {
+        method: method || "GET",
+        credentials: "same-origin",
+        headers: payload ? {"Content-Type":"application/json"} : {},
+        body: payload ? JSON.stringify(payload) : undefined
+    });
+    let data = {};
+    try { data = await response.json(); } catch (_) {}
+    if (!response.ok) throw new Error(data.error || "The request could not be completed.");
+    return data;
+}
+function accountContact(type, value) {
+    return {contact_type:type, contact:value.trim()};
+}
+async function refreshAccountState() {
+    try {
+        const health = await accountApi("/api/health");
+        accountServiceReady = health.status === "ok";
+        if (!accountServiceReady) throw new Error("Account service is temporarily unavailable.");
+        const result = await accountApi("/api/auth/me");
+        if (result.user) {
+            document.getElementById("accountForms").hidden = true;
+            document.getElementById("signedInPanel").hidden = false;
+            document.getElementById("signedInText").textContent =
+                (currentLanguage === "sw" ? "Umeingia kama: " : "Signed in as: ") + result.user.display_name;
+            accountMessage(currentLanguage === "sw" ? "Akaunti imeingia salama." : "Your account is signed in securely.", "success");
+        } else {
+            document.getElementById("accountForms").hidden = false;
+            document.getElementById("signedInPanel").hidden = true;
+            accountMessage(
+                health.registration === "requires_delivery_setup"
+                    ? (currentLanguage === "sw" ? "Kuingia kunapatikana kwa akaunti zilizopo. Usajili unasubiri kuunganishwa kwa huduma salama ya kutuma code za email/SMS." : "Sign-in is available for existing accounts. Registration is waiting for secure email/SMS code delivery setup.")
+                    : (currentLanguage === "sw" ? "Huduma ya akaunti iko tayari." : "Account service is ready."),
+                "info"
+            );
+        }
+    } catch (error) {
+        accountServiceReady = false;
+        accountMessage(error.message, "error");
+        document.getElementById("accountForms").hidden = true;
+    }
+}
+document.getElementById("loginForm").addEventListener("submit", async function(event) {
+    event.preventDefault();
+    const button = document.getElementById("loginButton");
+    button.disabled = true;
+    try {
+        const type = document.getElementById("loginContactType").value;
+        const contact = document.getElementById("loginContact").value;
+        const password = document.getElementById("loginPassword").value;
+        const result = await accountApi("/api/auth/login","POST",{...accountContact(type,contact),password});
+        document.getElementById("loginPassword").value = "";
+        document.getElementById("signedInText").textContent =
+            (currentLanguage === "sw" ? "Umeingia kama: " : "Signed in as: ") + result.user.display_name;
+        document.getElementById("accountForms").hidden = true;
+        document.getElementById("signedInPanel").hidden = false;
+        accountMessage(currentLanguage === "sw" ? "Umeingia kwenye akaunti yako." : "You are now signed in.", "success");
+    } catch (error) { accountMessage(error.message, "error"); }
+    finally { button.disabled = false; }
+});
+async function requestRegistrationCode() {
+    const button = document.getElementById("requestCodeButton");
+    button.disabled = true;
+    try {
+        const type = document.getElementById("registerContactType").value;
+        const contact = document.getElementById("registerContact").value;
+        const result = await accountApi("/api/auth/request-code","POST",accountContact(type,contact));
+        registrationVerificationId = result.verification_id;
+        accountMessage(result.message || "Verification code sent.", "success");
+    } catch (error) {
+        registrationVerificationId = null;
+        accountMessage(error.message, "error");
+    } finally { button.disabled = false; }
+}
+async function verifyRegistrationCode() {
+    if (!registrationVerificationId) {
+        accountMessage(currentLanguage === "sw" ? "Omba code kwanza." : "Request a code first.", "error");
+        return;
+    }
+    const button = document.getElementById("verifyCodeButton");
+    button.disabled = true;
+    try {
+        const code = document.getElementById("verificationCode").value.trim();
+        const result = await accountApi("/api/auth/verify-code","POST",{verification_id:registrationVerificationId,code});
+        accountMessage(result.message || "Contact verified.", "success");
+    } catch (error) { accountMessage(error.message, "error"); }
+    finally { button.disabled = false; }
+}
+document.getElementById("registerForm").addEventListener("submit", async function(event) {
+    event.preventDefault();
+    if (!registrationVerificationId) {
+        accountMessage(currentLanguage === "sw" ? "Thibitisha email au simu kwanza." : "Verify your email or phone first.", "error");
+        return;
+    }
+    const button = document.getElementById("registerButton");
+    button.disabled = true;
+    try {
+        const result = await accountApi("/api/auth/register","POST",{
+            verification_id:registrationVerificationId,
+            display_name:document.getElementById("registerName").value.trim(),
+            password:document.getElementById("registerPassword").value
+        });
+        document.getElementById("registerPassword").value = "";
+        document.getElementById("accountForms").hidden = true;
+        document.getElementById("signedInPanel").hidden = false;
+        document.getElementById("signedInText").textContent =
+            (currentLanguage === "sw" ? "Karibu, " : "Welcome, ") + result.user.display_name;
+        accountMessage(currentLanguage === "sw" ? "Akaunti imetengenezwa." : "Your account has been created.", "success");
+        registrationVerificationId = null;
+    } catch (error) { accountMessage(error.message, "error"); }
+    finally { button.disabled = false; }
+});
+async function accountLogout() {
+    try {
+        await accountApi("/api/auth/logout","POST",{});
+        document.getElementById("loginPassword").value = "";
+        document.getElementById("registerPassword").value = "";
+        registrationVerificationId = null;
+        await refreshAccountState();
+    } catch (error) { accountMessage(error.message, "error"); }
+}
+refreshAccountState();
+
 
 /* LANGUAGE FUNCTION */
 
