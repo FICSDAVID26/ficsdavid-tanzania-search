@@ -109,6 +109,24 @@ async function audit(db, userId, eventType, detail = {}) {
 }
 
 async function sendVerification(env, type, recipient, code) {
+  if (type === "email" && env.RESEND_API_KEY) {
+    const from = env.RESEND_FROM_EMAIL || "FICSDavid <onboarding@resend.dev>";
+    const textBody = `Your FICSDavid verification code is ${code}. It expires in 10 minutes. If you did not request this code, ignore this email.`;
+    const htmlBody = `<div style="font-family:Arial,sans-serif;line-height:1.6"><h2>FICSDavid account verification</h2><p>Your verification code is:</p><p style="font-size:28px;font-weight:bold;letter-spacing:6px">${code}</p><p>This code expires in 10 minutes. If you did not request it, ignore this email.</p></div>`;
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { "Authorization": "Bearer " + env.RESEND_API_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from,
+        to: [recipient],
+        subject: "Your FICSDavid verification code",
+        text: textBody,
+        html: htmlBody
+      })
+    });
+    return response.ok;
+  }
+
   const url = type === "email" ? env.EMAIL_DELIVERY_URL : env.SMS_DELIVERY_URL;
   const token = type === "email" ? env.EMAIL_DELIVERY_TOKEN : env.SMS_DELIVERY_TOKEN;
   if (!url || !token || !url.startsWith("https://")) return false;
@@ -335,7 +353,7 @@ export default {
     if (request.method === "GET" && url.pathname === "/api/health") {
       try {
         await env.DB.prepare("SELECT 1 AS ok").first();
-        return json({ status: "ok", account_api: "available", registration: "requires_delivery_setup" });
+        return json({ status: "ok", account_api: "available", registration: (env.RESEND_API_KEY || (env.EMAIL_DELIVERY_URL && env.EMAIL_DELIVERY_TOKEN)) ? "email_delivery_configured" : "requires_delivery_setup" });
       } catch (_) {
         return json({ status: "not_ready", account_api: "database_unavailable" }, 503);
       }
