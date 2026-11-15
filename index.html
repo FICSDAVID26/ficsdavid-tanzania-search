@@ -789,14 +789,17 @@ function voiceSearch() {
 
     };
 
+    recognition.onstart = function() {
+        document.getElementById("searchnote").textContent =
+            currentLanguage === "sw" ? "Nasikiliza… sema unachotafuta." : "Listening… say what you want to search.";
+    };
+    recognition.onend = function() {
+        document.getElementById("searchnote").textContent =
+            currentLanguage === "sw" ? "Utafutaji wa sauti umekamilika." : "Voice search finished.";
+    };
     recognition.onerror = function() {
-
-        alert(
-            currentLanguage === "sw"
-            ? "Voice search imeshindwa. Jaribu tena."
-            : "Voice search failed. Please try again."
-        );
-
+        document.getElementById("searchnote").textContent =
+            currentLanguage === "sw" ? "Ruhusa ya kipaza sauti haikupatikana au utafutaji umeshindwa." : "Microphone permission was denied or voice search failed.";
     };
 
     recognition.start();
@@ -1119,13 +1122,20 @@ function setLanguage(language) {
 
     document.getElementById("accounttext").textContent =
         isSwahili
-        ? "Usajili na kuingia kwenye akaunti vitawezeshwa baada ya kuunganisha backend."
-        : "Account registration and secure login will be enabled after backend integration.";
+        ? "Ingia kwenye akaunti yako kuu ya FICSDavid, au tengeneza akaunti baada ya huduma za kutuma code za uthibitisho kuwekwa tayari."
+        : "Sign in to your FICSDavid master account, or create one after verification-code delivery is configured.";
 
     document.getElementById("accountSafetyNotice").textContent =
         isSwahili
-        ? "Tahadhari ya usalama: Usajili na kuingia kwenye akaunti bado havijaanza. Usiweke wala kushiriki password, PIN, code za uthibitisho au taarifa za fedha kwenye ukurasa huu."
-        : "Safety notice: Account registration and login are not active yet. Do not enter or share passwords, PINs, one-time codes or financial details on this page.";
+        ? "Usalama: Tumia password ya kipekee. Usimpe mtu password au code ya uthibitisho. FICSDavid haitakuomba uitume kwenye mazungumzo."
+        : "Security: use a unique password. Never share your password or verification code. FICSDavid will never ask you to send them in chat.";
+    document.getElementById("loginHeading").textContent = isSwahili ? "Ingia" : "Sign in";
+    document.getElementById("registerSummary").textContent = isSwahili ? "Fungua akaunti mpya" : "Create a new account";
+    document.getElementById("loginButton").textContent = isSwahili ? "Ingia" : "Sign in";
+    document.getElementById("requestCodeButton").textContent = isSwahili ? "Tuma code ya uthibitisho" : "Send verification code";
+    document.getElementById("verifyCodeButton").textContent = isSwahili ? "Thibitisha code" : "Verify code";
+    document.getElementById("registerButton").textContent = isSwahili ? "Fungua akaunti" : "Create account";
+    if (typeof refreshAccountState === "function") refreshAccountState();
 
     document.getElementById("walletStatus").textContent =
         isSwahili ? "Bado haijaanza" : "Not active yet";
