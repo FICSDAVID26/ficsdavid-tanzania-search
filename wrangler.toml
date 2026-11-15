@@ -5,5 +5,5 @@ compatibility_date = "2026-11-13"
 [[d1_databases]]
 binding = "DB"
 database_name = "ficsdavid-main"
-database_id = "07370413-a8dc-4cb2-8202-3e4ad9e6d8e8"
+database_id = "b3b82f56-52bd-46d5-ac58-e72aa1b4c0a2"
 migrations_dir = "migrations"
