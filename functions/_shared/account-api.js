@@ -347,6 +347,35 @@ async function logout(request, env) {
   });
 }
 
+async function createSupportTicket(request, env) {
+  if (!validOrigin(request)) return json({ error: "Request origin rejected." }, 403);
+  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+  const ipHash = await sha256("support-ticket-ip:" + ip);
+  if (!(await rateLimit(env.DB, "support-ticket:" + ipHash, 5, 3600))) {
+    return json({ error: "Too many reports. Please try again later." }, 429);
+  }
+  const body = await readJson(request);
+  const category = String(body.category || "").trim();
+  const subject = String(body.subject || "").trim();
+  const message = String(body.message || "").trim();
+  const contact = String(body.contact || "").trim();
+  const allowed = ["account", "search", "communication", "payments", "technical", "other"];
+  if (!allowed.includes(category) || subject.length < 4 || subject.length > 120 ||
+      message.length < 10 || message.length > 3000 || contact.length > 254) {
+    return json({ error: "Please check the category, subject, message and contact details." }, 400);
+  }
+  if (contact && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact)) {
+    return json({ error: "Enter a valid email address or leave the contact field empty." }, 400);
+  }
+  const now = Math.floor(Date.now() / 1000);
+  const id = crypto.randomUUID();
+  const ticketCode = "FICS-" + randomToken(6).toUpperCase();
+  await env.DB.prepare(
+    "INSERT INTO support_tickets(id,ticket_code,category,subject,message,contact,created_at) VALUES(?,?,?,?,?,?,?)"
+  ).bind(id, ticketCode, category, subject, message, contact || null, now).run();
+  return json({ success: true, ticket_code: ticketCode }, 201);
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
