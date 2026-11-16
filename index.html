@@ -378,8 +378,27 @@ footer {
 
     <div class="result-message">
         <strong data-en="Contact Support" data-sw="Wasiliana na Msaada">Contact Support</strong>
-        <p data-en="The official support contact channel is still being configured. Please do not send passwords, PINs or verification codes to anyone. Support contact details will be published here when ready." data-sw="Njia rasmi ya kuwasiliana na timu ya msaada bado inaandaliwa. Tafadhali usitume password, PIN au code za uthibitisho kwa mtu yeyote. Taarifa rasmi za mawasiliano zitawekwa hapa zitakapokuwa tayari.">The official support contact channel is still being configured. Please do not send passwords, PINs or verification codes to anyone. Support contact details will be published here when ready.</p>
+        <p data-en="Tell us what went wrong. A ticket number will be created when your report is saved. Never include your password, PIN or verification code." data-sw="Tuambie tatizo lililotokea. Namba ya ripoti itatolewa baada ya taarifa kuhifadhiwa. Usiandike password, PIN au code ya uthibitisho.">Tell us what went wrong. A ticket number will be created when your report is saved. Never include your password, PIN or verification code.</p>
     </div>
+    <form id="supportTicketForm" class="account-form" onsubmit="submitSupportTicket(event)">
+        <label for="supportCategory" data-en="Problem category" data-sw="Aina ya tatizo">Problem category</label>
+        <select id="supportCategory" required>
+            <option value="account" data-en="Account and security" data-sw="Akaunti na usalama">Account and security</option>
+            <option value="search" data-en="Tanzania Search" data-sw="Tanzania Search">Tanzania Search</option>
+            <option value="communication" data-en="Calls, messages or contacts" data-sw="Simu, ujumbe au contacts">Calls, messages or contacts</option>
+            <option value="payments" data-en="Wallet or payments" data-sw="Wallet au malipo">Wallet or payments</option>
+            <option value="technical" data-en="Website or technical issue" data-sw="Tatizo la tovuti au teknolojia">Website or technical issue</option>
+            <option value="other" data-en="Other" data-sw="Nyingine">Other</option>
+        </select>
+        <label for="supportSubject" data-en="Short title" data-sw="Kichwa kifupi cha tatizo">Short title</label>
+        <input id="supportSubject" maxlength="120" minlength="4" required placeholder="Example: Search page is not opening">
+        <label for="supportMessage" data-en="Describe the problem" data-sw="Eleza tatizo">Describe the problem</label>
+        <textarea id="supportMessage" rows="5" maxlength="3000" minlength="10" required placeholder="Tell us what happened and what you expected..."></textarea>
+        <label for="supportContact" data-en="Email for a reply (optional)" data-sw="Barua pepe ya majibu (si lazima)">Email for a reply (optional)</label>
+        <input id="supportContact" type="email" maxlength="254" autocomplete="email" placeholder="you@example.com">
+        <button class="primary" id="supportSubmitButton" type="submit" data-en="Send report" data-sw="Tuma ripoti">Send report</button>
+        <p id="supportTicketStatus" class="small" role="status" aria-live="polite"></p>
+    </form>
 </section>
 
 <section class="panel" id="communicationCentre">
@@ -896,6 +915,40 @@ function openCommunicationTool(tool) {
 }
 
 /* SERVICE INFORMATION */
+
+async function submitSupportTicket(event) {
+    event.preventDefault();
+    const form = document.getElementById("supportTicketForm");
+    const button = document.getElementById("supportSubmitButton");
+    const status = document.getElementById("supportTicketStatus");
+    const isSwahili = currentLanguage === "sw";
+    button.disabled = true;
+    button.textContent = isSwahili ? "Inatuma..." : "Sending...";
+    status.textContent = "";
+    try {
+        const response = await fetch("/api/support/tickets", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                category: document.getElementById("supportCategory").value,
+                subject: document.getElementById("supportSubject").value.trim(),
+                message: document.getElementById("supportMessage").value.trim(),
+                contact: document.getElementById("supportContact").value.trim()
+            })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Could not send report.");
+        status.textContent = (isSwahili ? "Ripoti imepokelewa. Namba yako ya ripoti: " : "Report received. Your ticket number: ") + result.ticket_code;
+        status.dataset.state = "success";
+        form.reset();
+    } catch (error) {
+        status.textContent = (isSwahili ? "Imeshindikana kutuma ripoti: " : "Could not send report: ") + error.message;
+        status.dataset.state = "error";
+    } finally {
+        button.disabled = false;
+        button.textContent = isSwahili ? "Tuma ripoti" : "Send report";
+    }
+}
 
 function openHelpCentre() {
     document.getElementById("servicePanel").hidden = true;
