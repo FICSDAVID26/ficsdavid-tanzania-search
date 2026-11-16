@@ -359,7 +359,7 @@ export default {
       }
     }
 
-    if (!url.pathname.startsWith("/api/auth/")) return json({ error: "Not found." }, 404);
+    if (url.pathname === "/api/support/tickets" && request.method === "POST") {\n      try { return await createSupportTicket(request, env); }\n      catch (error) {\n        if (error && error.message === "JSON_REQUIRED") return json({ error: "Send JSON content." }, 415);\n        if (error && error.message === "BODY_TOO_LARGE") return json({ error: "Request too large." }, 413);\n        if (error && error.message === "INVALID_JSON") return json({ error: "Invalid JSON." }, 400);\n        return json({ error: "The report could not be saved. Please try again later." }, 500);\n      }\n    }\n    if (url.pathname === "/api/support/tickets") return json({ error: "Method not allowed." }, 405, { Allow: "POST" });\n    if (!url.pathname.startsWith("/api/auth/")) return json({ error: "Not found." }, 404);
     if (request.method !== "POST" && !(request.method === "GET" && url.pathname === "/api/auth/me")) {
       return json({ error: "Method not allowed." }, 405, { Allow: "GET, POST" });
     }
