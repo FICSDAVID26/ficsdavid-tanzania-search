@@ -119,7 +119,9 @@ function rateLimitError(scope, retryAfterSeconds) {
   const minutes = Math.max(1, Math.ceil(retryAfterSeconds / 60));
   const message = scope === "email"
     ? `Too many requests for this email. Try again in about ${minutes} minute(s).`
-    : `Too many requests from this network. Try again in about ${minutes} minute(s).`;
+    : scope === "network"
+      ? `Too many requests from this network. Try again in about ${minutes} minute(s).`
+      : `Too many verification requests. Try again in about ${minutes} minute(s).`;
   return json({
     error: message,
     limit_scope: scope,
@@ -127,10 +129,78 @@ function rateLimitError(scope, retryAfterSeconds) {
   }, 429, { "Retry-After": String(retryAfterSeconds) });
 }
 
-async function releaseRateLimit(db, key) {
-  await db.prepare(
-    "UPDATE rate_limits SET request_count=MAX(0, request_count-1) WHERE rate_key=?"
-  ).bind(key).run();
+// Reserve both verification limits in one D1 batch. D1 executes batch statements
+// transactionally, so a denied IP limit cannot consume the contact allowance,
+// and a denied contact limit cannot consume the IP allowance.
+async function reserveVerificationLimits(db, contactKey, ipKey) {
+  const now = Math.floor(Date.now() / 1000);
+  const windowStart = now - 3600;
+  const results = await db.batch([
+    db.prepare(
+      `INSERT INTO rate_limits(rate_key, window_start, request_count)
+       SELECT ?, ?, 1
+       WHERE NOT EXISTS (
+         SELECT 1 FROM rate_limits
+         WHERE rate_key=? AND window_start>? AND request_count>?
+       )
+       ON CONFLICT(rate_key) DO UPDATE SET
+         request_count = CASE
+           WHEN rate_limits.window_start <= ? THEN 1
+           ELSE rate_limits.request_count + 1
+         END,
+         window_start = CASE
+           WHEN rate_limits.window_start <= ? THEN excluded.window_start
+           ELSE rate_limits.window_start
+         END
+       WHERE rate_limits.window_start <= ? OR rate_limits.request_count <= ?
+       RETURNING request_count, window_start`
+    ).bind(contactKey, now, ipKey, windowStart, 10, windowStart, windowStart, windowStart, 3),
+    db.prepare(
+      `INSERT INTO rate_limits(rate_key, window_start, request_count)
+       SELECT ?, ?, 1
+       WHERE EXISTS (
+         SELECT 1 FROM rate_limits
+         WHERE rate_key=? AND (window_start<=? OR request_count<=?)
+       )
+       ON CONFLICT(rate_key) DO UPDATE SET
+         request_count = CASE
+           WHEN rate_limits.window_start <= ? THEN 1
+           ELSE rate_limits.request_count + 1
+         END,
+         window_start = CASE
+           WHEN rate_limits.window_start <= ? THEN excluded.window_start
+           ELSE rate_limits.window_start
+         END
+       WHERE rate_limits.window_start <= ? OR rate_limits.request_count <= ?
+       RETURNING request_count, window_start`
+    ).bind(ipKey, now, contactKey, windowStart, 3, windowStart, windowStart, windowStart, 10)
+  ]);
+
+  const contactReserved = Boolean(results[0]?.results?.length);
+  const ipReserved = Boolean(results[1]?.results?.length);
+  if (contactReserved && ipReserved) return { allowed: true };
+
+  // A read-only lookup is used only to choose a useful Retry-After response;
+  // the atomic batch above is what enforces both limits.
+  const current = await db.prepare(
+    "SELECT rate_key, window_start, request_count FROM rate_limits WHERE rate_key IN (?, ?)"
+  ).bind(contactKey, ipKey).all();
+  const rows = current?.results || [];
+  const contact = rows.find(row => row.rate_key === contactKey);
+  const ip = rows.find(row => row.rate_key === ipKey);
+  const contactBlocked = contact && contact.window_start > windowStart && contact.request_count > 3;
+  const ipBlocked = ip && ip.window_start > windowStart && ip.request_count > 10;
+  const blocked = [];
+  if (contactBlocked) blocked.push(contact);
+  if (ipBlocked) blocked.push(ip);
+  const retryAfterSeconds = blocked.length
+    ? Math.max(1, Math.max(...blocked.map(row => row.window_start + 3600 - now)))
+    : 3600;
+  return {
+    allowed: false,
+    scope: contactBlocked ? "email" : ipBlocked ? "network" : "verification",
+    retryAfterSeconds
+  };
 }
 
 async function audit(db, userId, eventType, detail = {}) {
@@ -212,12 +282,12 @@ async function requestCode(request, env) {
   const ipKey = await sha256("ip:" + ip);
   const contactLimitKey = "code-contact:" + contactKey;
   const ipLimitKey = "code-ip:" + ipKey;
-  const [contactLimit, ipLimit] = await Promise.all([
-    rateLimit(env.DB, contactLimitKey, 3, 3600),
-    rateLimit(env.DB, ipLimitKey, 10, 3600)
-  ]);
-  if (!contactLimit.allowed) return rateLimitError("email", contactLimit.retryAfterSeconds);
-  if (!ipLimit.allowed) return rateLimitError("network", ipLimit.retryAfterSeconds);
+  const verificationLimit = await reserveVerificationLimits(
+    env.DB, contactLimitKey, ipLimitKey
+  );
+  if (!verificationLimit.allowed) {
+    return rateLimitError(verificationLimit.scope, verificationLimit.retryAfterSeconds);
+  }
 
   const code = String(crypto.getRandomValues(new Uint32Array(1))[0] % 1000000).padStart(6, "0");
   const saltBytes = crypto.getRandomValues(new Uint8Array(16));
@@ -234,12 +304,9 @@ async function requestCode(request, env) {
   try { delivered = await sendVerification(env, type, contact, code); } catch (_) {}
   if (!delivered) {
     await env.DB.prepare("DELETE FROM verification_codes WHERE id=?").bind(id).run();
-    // A failed delivery should not consume the user's verification request allowance.
-    await Promise.all([
-      releaseRateLimit(env.DB, contactLimitKey),
-      releaseRateLimit(env.DB, ipLimitKey)
-    ]);
-    return json({ error: "Verification email could not be delivered. No account was created. Please check the email service and try again later." }, 503);
+    // Keep the rate-limit reservation: decrementing shared counters here can
+    // erase another concurrent request's reservation and weaken abuse controls.
+    return json({ error: "The verification code could not be delivered. No account was created. Please try again later." }, 503);
   }
   return json({ message: "If this contact can be registered, a verification code has been sent.", verification_id: id }, 202);
 }
