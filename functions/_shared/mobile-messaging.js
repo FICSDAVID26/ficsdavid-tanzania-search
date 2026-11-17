@@ -15,9 +15,9 @@ function fromB64url(value) {
   return Uint8Array.from(atob(s + "=".repeat((4 - s.length % 4) % 4)), c => c.charCodeAt(0));
 }
 async function digestPhone(value, env) {
-  if (!env.MOBILE_DATA_ENCRYPTION_KEY) throw new Error("ENCRYPTION_NOT_CONFIGURED");
-  const raw = fromB64url(env.MOBILE_DATA_ENCRYPTION_KEY);
-  if (raw.length !== 32) throw new Error("ENCRYPTION_NOT_CONFIGURED");
+  if (!env.MOBILE_PHONE_HASH_KEY) throw new Error("HASH_KEY_NOT_CONFIGURED");
+  const raw = fromB64url(env.MOBILE_PHONE_HASH_KEY);
+  if (raw.length !== 32) throw new Error("HASH_KEY_NOT_CONFIGURED");
   const key = await crypto.subtle.importKey("raw", raw, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   const bytes = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode("ficsd-mobile-phone:" + value));
   return [...new Uint8Array(bytes)].map(x => x.toString(16).padStart(2, "0")).join("");
@@ -83,15 +83,15 @@ export async function handleMobileSms(request, env, user, pathname) {
         !/^[A-Za-z0-9._:-]{16,128}$/.test(idempotencyKey)) {
       return json({ error: "Ombi ni lazima iwe ujumbe wa huduma, usizidi herufi 320, na iwe na Idempotency-Key halali." }, 400);
     }
-    const consent = await env.DB.prepare("SELECT consent_status FROM mobile_channel_consents WHERE user_id=? AND phone_hash=? AND channel='sms' AND purpose='service_updates' ORDER BY consented_at DESC LIMIT 1")
+    const consent = await env.DB.prepare("SELECT consent_status FROM mobile_channel_consents WHERE user_id=? AND phone_hash=? AND channel='sms' AND purpose='service_updates' ORDER BY consented_at DESC, created_at DESC LIMIT 1")
       .bind(user.id, phoneHash).first();
     if (!consent || consent.consent_status !== "opted_in") return json({ error: "Mteja hajatoa ruhusa ya kupokea SMS za taarifa za huduma." }, 403);
     if (!(await limit(env.DB, "mobile-sms-user:" + user.id, 5, 3600)) ||
         !(await limit(env.DB, "mobile-sms-phone:" + phoneHash, 3, 3600))) {
       return json({ error: "Kikomo cha SMS kimefikiwa. Jaribu baadaye." }, 429);
     }
-    const duplicate = await env.DB.prepare("SELECT id,status FROM mobile_message_jobs WHERE idempotency_key=?").bind(idempotencyKey).first();
-    if (duplicate) return json({ error: "Ombi hili limeshawasilishwa.", job_id: duplicate.id, status: duplicate.status }, 409);
+    const duplicate = await env.DB.prepare("SELECT id,status,user_id FROM mobile_message_jobs WHERE idempotency_key=?").bind(idempotencyKey).first();
+    if (duplicate) return duplicate.user_id === user.id\n      ? json({ error: "Ombi hili limeshawasilishwa.", job_id: duplicate.id, status: duplicate.status }, 409)\n      : json({ error: "Idempotency-Key tayari imetumika." }, 409);
     let phoneCiphertext, messageCiphertext;
     try {
       phoneCiphertext = await encrypt(user.phone_e164, env);
