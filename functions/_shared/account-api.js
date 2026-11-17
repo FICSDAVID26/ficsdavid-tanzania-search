@@ -141,7 +141,7 @@ async function reserveVerificationLimits(db, contactKey, ipKey) {
        SELECT ?, ?, 1
        WHERE NOT EXISTS (
          SELECT 1 FROM rate_limits
-         WHERE rate_key=? AND window_start>? AND request_count>?
+         WHERE rate_key=? AND window_start>? AND request_count>=?
        )
        ON CONFLICT(rate_key) DO UPDATE SET
          request_count = CASE
@@ -152,7 +152,7 @@ async function reserveVerificationLimits(db, contactKey, ipKey) {
            WHEN rate_limits.window_start <= ? THEN excluded.window_start
            ELSE rate_limits.window_start
          END
-       WHERE rate_limits.window_start <= ? OR rate_limits.request_count <= ?
+       WHERE rate_limits.window_start <= ? OR rate_limits.request_count < ?
        RETURNING request_count, window_start`
     ).bind(contactKey, now, ipKey, windowStart, 10, windowStart, windowStart, windowStart, 3),
     db.prepare(
@@ -160,7 +160,7 @@ async function reserveVerificationLimits(db, contactKey, ipKey) {
        SELECT ?, ?, 1
        WHERE EXISTS (
          SELECT 1 FROM rate_limits
-         WHERE rate_key=? AND (window_start<=? OR request_count<=?)
+         WHERE rate_key=? AND (window_start<=? OR request_count<?)
        )
        ON CONFLICT(rate_key) DO UPDATE SET
          request_count = CASE
@@ -171,7 +171,7 @@ async function reserveVerificationLimits(db, contactKey, ipKey) {
            WHEN rate_limits.window_start <= ? THEN excluded.window_start
            ELSE rate_limits.window_start
          END
-       WHERE rate_limits.window_start <= ? OR rate_limits.request_count <= ?
+       WHERE rate_limits.window_start <= ? OR rate_limits.request_count < ?
        RETURNING request_count, window_start`
     ).bind(ipKey, now, contactKey, windowStart, 3, windowStart, windowStart, windowStart, 10)
   ]);
@@ -188,8 +188,8 @@ async function reserveVerificationLimits(db, contactKey, ipKey) {
   const rows = current?.results || [];
   const contact = rows.find(row => row.rate_key === contactKey);
   const ip = rows.find(row => row.rate_key === ipKey);
-  const contactBlocked = contact && contact.window_start > windowStart && contact.request_count > 3;
-  const ipBlocked = ip && ip.window_start > windowStart && ip.request_count > 10;
+  const contactBlocked = contact && contact.window_start > windowStart && contact.request_count >= 3;
+  const ipBlocked = ip && ip.window_start > windowStart && ip.request_count >= 10;
   const blocked = [];
   if (contactBlocked) blocked.push(contact);
   if (ipBlocked) blocked.push(ip);
