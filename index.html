@@ -941,9 +941,9 @@ function voiceSearch() {
    Opens the customer's own phone dialer or SMS composer.
    This does not route calls or messages through FICSDavid servers. */
 function normalizeTanzaniaMobileNumber(value) {
-    const raw = String(value || "").replace(/[\\s()-]/g, "");
+    const raw = String(value || "").replace(/[\s()-]/g, "");
     if (/^0[0-9]{9}$/.test(raw)) return "+255" + raw.slice(1);
-    if (/^\\+255[0-9]{9}$/.test(raw)) return raw;
+    if (/^\+255[0-9]{9}$/.test(raw)) return raw;
     if (/^255[0-9]{9}$/.test(raw)) return "+" + raw;
     return null;
 }
