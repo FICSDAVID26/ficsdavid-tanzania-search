@@ -121,9 +121,11 @@ function rateLimitError(scope, retryAfterSeconds) {
   const minutes = Math.max(1, Math.ceil(retryAfterSeconds / 60));
   const message = scope === "email"
     ? `Too many requests for this email. Try again in about ${minutes} minute(s).`
-    : scope === "network"
-      ? `Too many requests from this network. Try again in about ${minutes} minute(s).`
-      : `Too many verification requests. Try again in about ${minutes} minute(s).`;
+    : scope === "phone"
+      ? `Too many requests for this phone number. Try again in about ${minutes} minute(s).`
+      : scope === "network"
+        ? `Too many requests from this network. Try again in about ${minutes} minute(s).`
+        : `Too many verification requests. Try again in about ${minutes} minute(s).`;
   return json({
     error: message,
     limit_scope: scope,
@@ -212,7 +214,7 @@ async function requestCode(request, env) {
   const contactLimitKey = "code-contact:" + contactKey;
   const ipLimitKey = "code-ip:" + ipKey;
   const verificationLimit = await reserveVerificationLimits(
-    env.DB, contactLimitKey, ipLimitKey
+    rateLimit, env.DB, contactLimitKey, ipLimitKey, type
   );
   if (!verificationLimit.allowed) {
     return rateLimitError(verificationLimit.scope, verificationLimit.retryAfterSeconds);
