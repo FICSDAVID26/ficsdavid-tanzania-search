@@ -1,7 +1,5 @@
 -- FICSDavid service foundation: Wallet, Bundle and Communication
 -- Cloudflare D1 / SQLite. Schema only: no money movement or provider delivery is enabled.
-PRAGMA foreign_keys = ON;
-
 CREATE TABLE IF NOT EXISTS service_preferences (
   user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
   preferred_language TEXT NOT NULL DEFAULT 'sw' CHECK (preferred_language IN ('sw','en')),
