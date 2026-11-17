@@ -206,7 +206,14 @@ async function requestCode(request, env) {
   const existing = type === "email"
     ? await env.DB.prepare("SELECT id FROM users WHERE email=?").bind(contact).first()
     : await env.DB.prepare("SELECT id FROM users WHERE phone_e164=?").bind(contact).first();
-  if (existing) return json({ message: "If this contact can be registered, a verification code will be sent." }, 202);
+  if (existing) {
+    // Keep the response shape indistinguishable from a new contact to reduce
+    // account-enumeration signals. The random ID cannot verify or register.
+    return json({
+      message: "If this contact can be registered, a verification code has been sent.",
+      verification_id: crypto.randomUUID()
+    }, 202);
+  }
 
   const ip = request.headers.get("CF-Connecting-IP") || "unknown";
   const contactKey = await sha256("contact:" + contact);
@@ -265,12 +272,28 @@ async function verifyCode(request, env) {
   }
   const hash = await derivePassword(code, row.code_salt, CODE_HASH_ITERATIONS);
   if (!constantTimeEqual(hash, row.code_hash)) {
-    await env.DB.prepare("UPDATE verification_codes SET attempts=attempts+1 WHERE id=?").bind(id).run();
+    // Atomic predicate prevents simultaneous wrong attempts exceeding the cap.
+    const attempt = await env.DB.prepare(
+      "UPDATE verification_codes SET attempts=attempts+1 WHERE id=? AND attempts<? AND verified_at IS NULL AND consumed_at IS NULL AND expires_at>? RETURNING attempts"
+    ).bind(id, MAX_CODE_ATTEMPTS, now).first();
+    if (!attempt) return json({ error: "Code is invalid or expired. Request a new code." }, 400);
     return json({ error: "Incorrect code." }, 400);
   }
-  await env.DB.prepare("UPDATE verification_codes SET verified_at=? WHERE id=? AND consumed_at IS NULL")
-    .bind(now, id).run();
-  return json({ message: "Contact verified. You may now create your account." });
+  // Only one concurrent request can transition an unverified code to verified.
+  const verifiedNow = await env.DB.prepare(
+    "UPDATE verification_codes SET verified_at=? WHERE id=? AND attempts<? AND verified_at IS NULL AND consumed_at IS NULL AND expires_at>? RETURNING id"
+  ).bind(now, id, MAX_CODE_ATTEMPTS, now).first();
+  if (verifiedNow) {
+    return json({ message: "Contact verified. You may now create your account." });
+  }
+  // Another correct request may have completed the transition first.
+  const alreadyVerified = await env.DB.prepare(
+    "SELECT id FROM verification_codes WHERE id=? AND verified_at IS NOT NULL AND consumed_at IS NULL AND expires_at>?"
+  ).bind(id, now).first();
+  if (alreadyVerified) {
+    return json({ message: "Contact verified. You may now create your account." });
+  }
+  return json({ error: "Code is invalid or expired. Request a new code." }, 400);
 }
 
 async function register(request, env) {
@@ -313,7 +336,9 @@ async function register(request, env) {
     return json({ error: "This contact may already be registered. Try signing in." }, 409);
   }
 
-  await audit(env.DB, userId, "account_created");
+  // Audit logging must not turn a successfully created account into a
+  // misleading registration failure if the audit table is temporarily unavailable.
+  try { await audit(env.DB, userId, "account_created"); } catch (_) {}
   const rawToken = randomToken();
   const tokenHash = await sha256(rawToken);
   const sessionId = crypto.randomUUID();
