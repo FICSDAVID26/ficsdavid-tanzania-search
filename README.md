@@ -27,12 +27,15 @@ The account foundation is intended to provide one verified identity for the plat
 
 ## Connected services database foundation
 
-Four D1 migrations are present:
+Five D1 migration files are present:
 
 - `0001_account_foundation.sql` — users, verification codes, sessions, rate limits and security events.
 - `0002_connected_services.sql` — service preferences, Wallet accounts and immutable ledger entries, Bundle providers/products/orders, contacts, conversations, encrypted-message payload storage, call records, short-lived signalling envelopes and service audit events.
+- `0002_support_tickets.sql` — Help Centre support-ticket storage.
 - `0003_mobile_sms_voice.sql` — opt-in/opt-out records, SMS/voice job tracking, provider webhook receipts, voice session tracking and provider configuration status.
 - `0004_communication_contacts.sql` — encrypted phone/email contact fields and private-contact lookup indexes.
+
+Wrangler applies pending migration files in filename order. Keep existing migration filenames unchanged after they have been applied to any database.
 
 The second and third migrations create data structures only. They do not activate any financial or telecom service. Before applying it to production, test both migrations against a non-production D1 database and review the schema and access policies.
 
@@ -88,3 +91,16 @@ The platform should preserve the founder's ownership and administrative control.
 ## Development notes
 
 Build the main platform first and connect services through shared identity, common security policies, consistent audit trails and documented APIs. Keep provider integrations modular so the platform can expand without fragmenting the customer experience.
+
+
+## MVP automated smoke checks
+
+The repository includes dependency-free Node.js smoke tests for the main website, search rendering safeguards, account API security controls, support-ticket protections, contact encryption/ownership checks and migration documentation.
+
+Run locally with Node.js 22 or later:
+
+```sh
+node --test tests/mvp-smoke.test.mjs
+```
+
+GitHub Actions runs the same checks on pushes to `main` and pull requests. These are static smoke checks; they do not replace Cloudflare deployment checks, D1 migration tests, browser testing or an independent security review.
