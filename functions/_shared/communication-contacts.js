@@ -166,7 +166,14 @@ async function addContact(request, env, user) {
     contactUser = await env.DB.prepare("SELECT id FROM users WHERE email=? AND status='active'").bind(value).first();
   }
 
+  if (contactUser && contactUser.id === user.id) {
+    return json({ error: "Huwezi kujiongeza mwenyewe kwenye contacts." }, 400);
+  }
   if (contactUser) {
+    const duplicatePerson = await env.DB.prepare(
+      "SELECT id FROM communication_contacts WHERE owner_user_id=? AND contact_user_id=? LIMIT 1"
+    ).bind(user.id, contactUser.id).first();
+    if (duplicatePerson) return json({ error: "Mtumiaji huyu tayari yupo kwenye contacts zako." }, 409);
     const blocked = await env.DB.prepare(
       "SELECT 1 AS blocked FROM communication_blocks WHERE (blocker_user_id=? AND blocked_user_id=?) OR (blocker_user_id=? AND blocked_user_id=?) LIMIT 1"
     ).bind(user.id, contactUser.id, contactUser.id, user.id).first();
