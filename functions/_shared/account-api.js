@@ -383,10 +383,20 @@ export default {
     const url = new URL(request.url);
     if (request.method === "GET" && url.pathname === "/api/health") {
       try {
-        await env.DB.prepare("SELECT 1 AS ok").first();
-        return json({ status: "ok", account_api: "available", registration: (env.RESEND_API_KEY || (env.EMAIL_DELIVERY_URL && env.EMAIL_DELIVERY_TOKEN)) ? "email_delivery_configured" : "requires_delivery_setup" });
+        // Resolve every table required by the account foundation without scanning user data.
+        await env.DB.prepare("SELECT 1 FROM users, verification_codes, sessions, rate_limits, security_events LIMIT 0").first();
+        const emailConfigured = !!(env.RESEND_API_KEY ||
+          (env.EMAIL_DELIVERY_URL && env.EMAIL_DELIVERY_TOKEN && env.EMAIL_DELIVERY_URL.startsWith("https://")));
+        const phoneConfigured = !!(env.SMS_DELIVERY_URL && env.SMS_DELIVERY_TOKEN &&
+          env.SMS_DELIVERY_URL.startsWith("https://"));
+        return json({
+          status: "ok",
+          account_api: "available",
+          database_schema: "ready",
+          registration: { email: emailConfigured, phone: phoneConfigured }
+        });
       } catch (_) {
-        return json({ status: "not_ready", account_api: "database_unavailable" }, 503);
+        return json({ status: "not_ready", account_api: "database_or_schema_unavailable" }, 503);
       }
     }
 
