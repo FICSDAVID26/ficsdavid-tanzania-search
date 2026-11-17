@@ -460,6 +460,7 @@ footer {
         <strong data-en="Integrated service centre — connection in progress." data-sw="Kituo kimoja cha huduma — maandalizi ya miunganisho yanaendelea.">Integrated service centre — connection in progress.</strong>
         <span data-en="These four tools share one planned FICSDavid account. Live calling, video, message delivery and cloud-synced contacts will only activate after secure communication services and infrastructure are connected." data-sw="Huduma hizi nne zimepangwa kutumia akaunti moja ya FICSDavid. Simu, video, utumaji ujumbe na contacts zitawashwa baada ya kuunganisha mifumo salama ya mawasiliano."> These four tools share one planned FICSDavid account. Live calling, video, message delivery and cloud-synced contacts will only activate after secure communication services and infrastructure are connected.</span>
     </div>
+</section>
 
 <section class="panel" id="ordinaryMobileCentre" aria-labelledby="ordinaryMobileTitle">
   <h2 id="ordinaryMobileTitle" data-en="Ordinary Mobile Calls & SMS" data-sw="Simu na SMS za Kawaida">Ordinary Mobile Calls & SMS</h2>
@@ -473,8 +474,6 @@ footer {
     <button class="primary" type="button" onclick="startOrdinarySms()" data-en="Open SMS app" data-sw="Fungua sehemu ya SMS">Open SMS app</button>
   </div>
   <div class="data-notice" data-en="These buttons open the phone's own dialer or SMS app. Your mobile operator's normal call or SMS charges may apply. FICSDavid does not place the call or send the SMS itself yet. Business SMS campaigns and calls from a FICSDavid number require an approved provider connection and any required TCRA authorization." data-sw="Vitufe hivi vinafungua sehemu ya kupiga simu au kutuma SMS kwenye simu yako. Gharama za kawaida za mtandao wako zinaweza kutumika. FICSDavid yenyewe bado haipigi simu wala kutuma SMS. SMS za biashara na simu kutoka namba ya FICSDavid zitahitaji mtoa huduma aliyeidhinishwa na vibali vinavyohitajika vya TCRA.">These buttons open the phone's own dialer or SMS app. Your mobile operator's normal call or SMS charges may apply. FICSDavid does not place the call or send the SMS itself yet. Business SMS campaigns and calls from a FICSDavid number require an approved provider connection and any required TCRA authorization.</div>
-</section>
-
 </section>
 
 <section>
@@ -936,6 +935,45 @@ function voiceSearch() {
 
     recognition.start();
 
+}
+
+/* ORDINARY MOBILE NETWORK SHORTCUTS
+   Opens the customer's own phone dialer or SMS composer.
+   This does not route calls or messages through FICSDavid servers. */
+function normalizeTanzaniaMobileNumber(value) {
+    const raw = String(value || "").replace(/[\\s()-]/g, "");
+    if (/^0[0-9]{9}$/.test(raw)) return "+255" + raw.slice(1);
+    if (/^\\+255[0-9]{9}$/.test(raw)) return raw;
+    if (/^255[0-9]{9}$/.test(raw)) return "+" + raw;
+    return null;
+}
+
+function startOrdinaryMobileCall() {
+    const input = document.getElementById("ordinaryMobileNumber");
+    const number = normalizeTanzaniaMobileNumber(input.value);
+    if (!number) {
+        alert(currentLanguage === "sw" ? "Weka namba sahihi ya Tanzania, mfano 07XXXXXXXX au +2557XXXXXXXX." : "Enter a valid Tanzania number, e.g. 07XXXXXXXX or +2557XXXXXXXX.");
+        input.focus();
+        return;
+    }
+    window.location.href = "tel:" + number;
+}
+
+function startOrdinarySms() {
+    const input = document.getElementById("ordinaryMobileNumber");
+    const message = document.getElementById("ordinarySmsText").value.trim();
+    const number = normalizeTanzaniaMobileNumber(input.value);
+    if (!number) {
+        alert(currentLanguage === "sw" ? "Weka namba sahihi ya Tanzania, mfano 07XXXXXXXX au +2557XXXXXXXX." : "Enter a valid Tanzania number, e.g. 07XXXXXXXX or +2557XXXXXXXX.");
+        input.focus();
+        return;
+    }
+    if (!message) {
+        alert(currentLanguage === "sw" ? "Andika ujumbe wa SMS kwanza." : "Write your SMS message first.");
+        document.getElementById("ordinarySmsText").focus();
+        return;
+    }
+    window.location.href = "sms:" + number + "?body=" + encodeURIComponent(message);
 }
 
 /* FICSDAVID COMMUNICATION CENTRE
