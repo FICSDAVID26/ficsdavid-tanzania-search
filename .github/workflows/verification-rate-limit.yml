@@ -1,0 +1,29 @@
+name: Verification rate-limit tests
+
+on:
+  pull_request:
+    paths:
+      - "functions/_shared/account-api.js"
+      - "functions/_shared/verification-rate-limit.js"
+      - "tests/verification-rate-limit.test.mjs"
+      - ".github/workflows/verification-rate-limit.yml"
+  push:
+    branches:
+      - main
+      - fix/verification-rate-limit-accounting
+
+permissions:
+  contents: read
+
+jobs:
+  verification-rate-limit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run verification rate-limit tests
+        run: node --test tests/verification-rate-limit.test.mjs
