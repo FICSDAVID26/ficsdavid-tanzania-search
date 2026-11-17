@@ -1,3 +1,4 @@
+import { handleMobileSms } from "./mobile-messaging.js";
 const PASSWORD_ITERATIONS = 310000;
 const CODE_HASH_ITERATIONS = 120000;
 const SESSION_SECONDS = 60 * 60 * 24 * 7;
@@ -385,6 +386,17 @@ export default {
         return json({ status: "ok", account_api: "available", registration: (env.RESEND_API_KEY || (env.EMAIL_DELIVERY_URL && env.EMAIL_DELIVERY_TOKEN)) ? "email_delivery_configured" : "requires_delivery_setup" });
       } catch (_) {
         return json({ status: "not_ready", account_api: "database_unavailable" }, 503);
+      }
+    }
+
+    if (url.pathname.startsWith("/api/mobile/sms/")) {
+      if (request.method !== "POST") return json({ error: "Method not allowed." }, 405, { Allow: "POST" });
+      if (!validOrigin(request)) return json({ error: "Request origin rejected." }, 403);
+      try {
+        const user = await currentUser(request, env);
+        return await handleMobileSms(request, env, user, url.pathname);
+      } catch (_) {
+        return json({ error: "Huduma ya SMS haikuweza kukamilisha ombi." }, 500);
       }
     }
 
