@@ -249,6 +249,9 @@ footer {
 .communication-contacts .contact-name { font-weight: 700; }
 .communication-contacts .contact-value { color: #65748a; font-size: 13px; margin-top: 3px; }
 .communication-contacts .contact-delete { background: #fff; color: #a12a2a; border: 1px solid #e3baba; border-radius: 8px; padding: 8px 10px; flex: 0 0 auto; }
+.communication-contacts .contact-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; flex: 0 0 auto; }
+.communication-contacts .contact-action { display: inline-block; color: #075da4; border: 1px solid #b9d7ef; border-radius: 8px; padding: 8px 10px; text-decoration: none; font-size: 13px; }
+
 #communicationContactsStatus { margin: 8px 0; }
 </style>
 </head>
@@ -1107,12 +1110,27 @@ function renderCommunicationContacts(contacts) {
             linked.textContent = currentLanguage === "sw" ? "Mtumiaji wa FICSDavid" : "FICSDavid user";
             details.appendChild(linked);
         }
+        const actions = document.createElement("div");
+        actions.className = "contact-actions";
+        if (contact.contact_type === "phone" && contact.contact_value) {
+            const call = document.createElement("a");
+            call.className = "contact-action";
+            call.href = "tel:" + contact.contact_value;
+            call.textContent = currentLanguage === "sw" ? "Piga" : "Call";
+            actions.appendChild(call);
+            const sms = document.createElement("a");
+            sms.className = "contact-action";
+            sms.href = "sms:" + contact.contact_value;
+            sms.textContent = "SMS";
+            actions.appendChild(sms);
+        }
         const remove = document.createElement("button");
         remove.type = "button";
         remove.className = "contact-delete";
         remove.textContent = currentLanguage === "sw" ? "Futa" : "Delete";
         remove.addEventListener("click", function() { deleteCommunicationContact(contact.id); });
-        row.append(details, remove);
+        actions.appendChild(remove);
+        row.append(details, actions);
         list.appendChild(row);
     });
 }
