@@ -14,8 +14,12 @@ function fromB64url(value) {
   const s = String(value).replace(/-/g, "+").replace(/_/g, "/");
   return Uint8Array.from(atob(s + "=".repeat((4 - s.length % 4) % 4)), c => c.charCodeAt(0));
 }
-async function digest(value) {
-  const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+async function digestPhone(value, env) {
+  if (!env.MOBILE_DATA_ENCRYPTION_KEY) throw new Error("ENCRYPTION_NOT_CONFIGURED");
+  const raw = fromB64url(env.MOBILE_DATA_ENCRYPTION_KEY);
+  if (raw.length !== 32) throw new Error("ENCRYPTION_NOT_CONFIGURED");
+  const key = await crypto.subtle.importKey("raw", raw, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const bytes = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode("ficsd-mobile-phone:" + value));
   return [...new Uint8Array(bytes)].map(x => x.toString(16).padStart(2, "0")).join("");
 }
 async function encrypt(value, env) {
@@ -55,7 +59,7 @@ export async function handleMobileSms(request, env, user, pathname) {
   const body = await readBody(request);
   if (!body) return json({ error: "Tuma taarifa sahihi za JSON." }, 400);
   const now = Math.floor(Date.now()/1000);
-  const phoneHash = await digest("ficsd-mobile-phone:" + user.phone_e164);
+  let phoneHash;\n  try { phoneHash = await digestPhone(user.phone_e164, env); }\n  catch (_) { return json({ error: "Usanidi wa usalama wa hifadhi fiche haujakamilika." }, 503); }
 
   if (pathname === "/api/mobile/sms/consent") {
     const purpose = body.purpose;
