@@ -48,7 +48,7 @@ Private messages are represented as encrypted payloads. The application must enf
 
 Authenticated account endpoints are scaffolded at `POST /api/mobile/sms/consent` and `POST /api/mobile/sms/queue`. Consent is recorded separately for service updates and marketing; the queue endpoint currently accepts only service-update messages to the account's own verified phone number, requires prior opt-in, enforces rate limits and an idempotency key, and encrypts the phone number and message before storage.
 
-Before using these endpoints, configure a server-only `MOBILE_DATA_ENCRYPTION_KEY` containing 32 random bytes encoded as base64url. Never expose this key to the browser or commit it to GitHub. The current queue endpoint only records a queued job and returns `delivery: not_enabled`; it does not contact an SMS gateway. A provider adapter, approved provider credentials, delivery-status webhook verification, STOP keyword handling and production security testing are still required. Marketing consent can be recorded, but no marketing campaign or bulk-send endpoint is enabled.
+Before using these endpoints, configure two server-only secrets: `MOBILE_DATA_ENCRYPTION_KEY` and `MOBILE_PHONE_HASH_KEY`, each containing 32 random bytes encoded as base64url. Never expose this key to the browser or commit it to GitHub. The current queue endpoint only records a queued job and returns `delivery: not_enabled`; it does not contact an SMS gateway. A provider adapter, approved provider credentials, delivery-status webhook verification, STOP keyword handling and production security testing are still required. Marketing consent can be recorded, but no marketing campaign or bulk-send endpoint is enabled.
 
 ## Cloud deployment setup required
 
