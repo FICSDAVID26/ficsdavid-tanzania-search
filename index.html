@@ -219,6 +219,18 @@ footer {
 .result-message { padding:14px; background:#f7faff; border-radius:10px; color:#526176; font-size:13px; }
 
 
+
+.data-service-panel{background:#fff;border:1px solid #dce6f2;border-radius:14px;padding:18px;margin:16px 0;box-shadow:0 2px 8px #0001}
+.data-service-panel h2{margin-top:0}
+.data-service-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px}
+.data-service-panel label{display:block;font-size:13px;font-weight:700;margin:10px 0 5px}
+.data-service-panel input,.data-service-panel select{width:100%;padding:13px;border:1px solid #ccd5e2;border-radius:9px;font-size:15px}
+.data-network{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.data-network label{display:flex;align-items:center;gap:6px;border:1px solid #d7e2f0;padding:10px 12px;border-radius:10px;margin:0}
+.data-network input{width:auto;margin:0}
+.data-notice{background:#fff8e6;border:1px solid #f1d38a;color:#704d00;border-radius:10px;padding:12px;font-size:13px;line-height:1.5;margin-top:12px}
+.data-status{padding:12px;border-radius:9px;background:#f2f6fb;font-size:13px;margin-top:12px}
+
 .account-form{display:grid;gap:8px;margin:14px 0;padding:14px;border:1px solid #e2e9f2;border-radius:10px;background:#fbfdff}
 .account-form label{font-size:13px;font-weight:700;color:#243954}
 .account-form input,.account-form select{margin:0}
@@ -326,6 +338,32 @@ footer {
     <p id="servicePanelText"></p>
 </section>
 
+
+
+<section class="data-service-panel" id="dataServicesPanel" hidden aria-labelledby="dataServicesTitle">
+  <h2 id="dataServicesTitle" data-en="FICSDavid Data Services" data-sw="Huduma za Vifurushi za FICSDavid">FICSDavid Data Services</h2>
+  <p class="small" data-en="Choose a network and tell us where the bundle should be sent." data-sw="Chagua mtandao na weka namba itakayopokea kifurushi.">Choose a network and tell us where the bundle should be sent.</p>
+  <form id="dataBundleForm" onsubmit="previewDataBundle(event)">
+    <label data-en="Mobile network" data-sw="Mtandao wa simu">Mobile network</label>
+    <div class="data-network">
+      <label><input type="radio" name="bundleNetwork" value="Vodacom" required> Vodacom</label>
+      <label><input type="radio" name="bundleNetwork" value="Yas"> Yas</label>
+      <label><input type="radio" name="bundleNetwork" value="Halotel"> Halotel</label>
+    </div>
+    <label for="bundleRecipientType" data-en="Who will receive the bundle?" data-sw="Nani atapokea kifurushi?">Who will receive the bundle?</label>
+    <select id="bundleRecipientType" required>
+      <option value="self" data-en="My number" data-sw="Namba yangu">My number</option>
+      <option value="other" data-en="Someone else" data-sw="Mtu mwingine">Someone else</option>
+    </select>
+    <label for="bundlePhone" data-en="Recipient phone number" data-sw="Namba ya simu ya mpokeaji">Recipient phone number</label>
+    <input id="bundlePhone" type="tel" inputmode="tel" autocomplete="tel" maxlength="16" placeholder="+255..." pattern="(\+?255|0)[0-9]{9}" required>
+    <label for="bundleSize" data-en="Bundle size / package requested" data-sw="Ukubwa wa kifurushi unachotaka">Bundle size / package requested</label>
+    <input id="bundleSize" type="text" maxlength="60" placeholder="Example: 2 GB, 5 GB" required>
+    <button class="primary" id="bundleCheckButton" type="submit" data-en="Check bundle availability" data-sw="Kagua upatikanaji wa kifurushi">Check bundle availability</button>
+  </form>
+  <div class="data-notice" data-en="Important: This service is being integrated. Live bundle prices, payments and delivery are not connected yet. This form is a preview only; it will not charge you or send data." data-sw="Muhimu: Huduma hii inaunganishwa. Bei za moja kwa moja, malipo na utumaji wa vifurushi bado havijaunganishwa. Fomu hii ni ya majaribio tu; haitakata fedha wala kutuma kifurushi.">Important: This service is being integrated. Live bundle prices, payments and delivery are not connected yet. This form is a preview only; it will not charge you or send data.</div>
+  <p id="bundlePreviewStatus" class="data-status" role="status" aria-live="polite" hidden></p>
+</section>
 
 <section class="panel" id="helpCentrePanel" hidden>
     <div class="results-heading">
@@ -1005,8 +1043,8 @@ function openService(service) {
         },
 
         bundles: {
-            en: "Data bundle purchases require mobile network operator integration.",
-            sw: "Ununuzi wa vifurushi vya data unahitaji muunganiko na kampuni za simu."
+            en: "Choose a network, then buy a bundle for yourself or another person. Live sales will start after an authorized provider connection is completed.",
+            sw: "Chagua mtandao, kisha nunua kifurushi kwa ajili yako au mtu mwingine. Mauzo ya moja kwa moja yataanza baada ya kuunganishwa na mtoa huduma aliyeidhinishwa."
         },
 
         history: {
@@ -1046,6 +1084,14 @@ function openService(service) {
 
     };
 
+    if (service === "bundles") {
+        document.getElementById("servicePanel").hidden = true;
+        const panel = document.getElementById("dataServicesPanel");
+        panel.hidden = false;
+        panel.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+    }
+
     if (service === "help") {
         openHelpCentre();
         return;
@@ -1069,6 +1115,24 @@ function openService(service) {
     servicePanel.scrollIntoView({ behavior: "smooth", block: "start" });
 
 }
+
+function previewDataBundle(event) {
+    event.preventDefault();
+    const network = document.querySelector('input[name="bundleNetwork"]:checked');
+    const phone = document.getElementById("bundlePhone").value.trim();
+    const size = document.getElementById("bundleSize").value.trim();
+    const recipientType = document.getElementById("bundleRecipientType").value;
+    const status = document.getElementById("bundlePreviewStatus");
+    if (!network || !phone || !size) return;
+    status.hidden = false;
+    status.textContent = currentLanguage === "sw"
+      ? "Ombi la majaribio limekaguliwa: " + network.value + ", " + size + ", mpokeaji " + phone + (recipientType === "other" ? " (mtu mwingine)." : " (wewe).") + " Hakuna oda iliyotumwa, hakuna malipo yaliyofanyika na hakuna kifurushi kilichonunuliwa. Tunaendelea na muunganisho wa mtoa huduma."
+      : "Preview checked: " + network.value + ", " + size + ", recipient " + phone + (recipientType === "other" ? " (someone else)." : " (you).") + " No order was sent, no payment was taken and no bundle was purchased. Provider integration is still pending.";
+}
+document.getElementById("bundleRecipientType").addEventListener("change", function() {
+    const phone = document.getElementById("bundlePhone");
+    phone.placeholder = this.value === "other" ? "+255... recipient number" : "+255... your number";
+});
 
 function closeServicePanel() {
     document.getElementById("servicePanel").hidden = true;
