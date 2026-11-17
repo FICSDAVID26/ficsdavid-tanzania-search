@@ -31,7 +31,7 @@ test("allows a request when both contact and network limits allow it", async () 
 
 test("stops before checking network when the contact limit blocks", async () => {
   const limiter = makeRateLimit([{ allowed: false, retryAfterSeconds: 125 }]);
-  const result = await reserveVerificationLimits(limiter.fn, {}, "contact-key", "ip-key");
+  const result = await reserveVerificationLimits(limiter.fn, {}, "contact-key", "ip-key", "email");
   assert.deepEqual(result, {
     allowed: false,
     scope: "email",
@@ -61,5 +61,16 @@ test("propagates database errors instead of treating them as an allowed request"
     reserveVerificationLimits(limiter.fn, {}, "contact-key", "ip-key"),
     /database unavailable/
   );
+  assert.equal(limiter.calls.length, 1);
+});
+
+test("preserves phone as the contact limit scope", async () => {
+  const limiter = makeRateLimit([{ allowed: false, retryAfterSeconds: 90 }]);
+  const result = await reserveVerificationLimits(limiter.fn, {}, "contact-key", "ip-key", "phone");
+  assert.deepEqual(result, {
+    allowed: false,
+    scope: "phone",
+    retryAfterSeconds: 90
+  });
   assert.equal(limiter.calls.length, 1);
 });
