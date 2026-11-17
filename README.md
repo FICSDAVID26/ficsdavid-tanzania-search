@@ -15,7 +15,9 @@ FICSDavid is one expandable digital platform, beginning in Tanzania and designed
 | Account verification and sessions | Starter workflow; delivery configuration and deployment required |
 | Bundle Services | Front-end request preview and D1 schema foundation; no live provider catalogue, price validation, payment or data delivery |
 | FICSDavid Wallet | D1 ledger schema foundation only; no active balance, deposits, transfers, withdrawals or payment processing |
-| Communication Centre | Shared internet Call, Video Call, Messages and Contacts interface; D1 data foundation only, no live messaging or calls |\n| Ordinary mobile calls and SMS | Website can open the user's native phone dialer and SMS composer; the customer uses their own SIM/operator. FICSDavid does not yet originate calls or send SMS through a gateway |\n| Business SMS / hosted voice | Database foundation only; requires an approved SMS/voice gateway or operator agreement, opt-in/opt-out handling, sender identity approval and regulatory review |
+| Communication Centre | Shared internet Call, Video Call, Messages and Contacts interface; D1 data foundation only, no live messaging or calls |
+| Ordinary mobile calls and SMS | Website can open the user's native phone dialer and SMS composer; the customer uses their own SIM/operator. FICSDavid does not yet originate calls or send SMS through a gateway |
+| Business SMS / hosted voice | Database foundation only; requires an approved SMS/voice gateway or operator agreement, opt-in/opt-out handling, sender identity approval and regulatory review |
 | Mobile money and bank integrations | Not connected |
 | Production security review | Not completed |
 
@@ -28,7 +30,8 @@ The account foundation is intended to provide one verified identity for the plat
 Three D1 migrations are present:
 
 - `0001_account_foundation.sql` — users, verification codes, sessions, rate limits and security events.
-- `0002_connected_services.sql` — service preferences, Wallet accounts and immutable ledger entries, Bundle providers/products/orders, contacts, conversations, encrypted-message payload storage, call records, short-lived signalling envelopes and service audit events.\n- `0003_mobile_sms_voice.sql` — opt-in/opt-out records, SMS/voice job tracking, provider webhook receipts, voice session tracking and provider configuration status.
+- `0002_connected_services.sql` — service preferences, Wallet accounts and immutable ledger entries, Bundle providers/products/orders, contacts, conversations, encrypted-message payload storage, call records, short-lived signalling envelopes and service audit events.
+- `0003_mobile_sms_voice.sql` — opt-in/opt-out records, SMS/voice job tracking, provider webhook receipts, voice session tracking and provider configuration status.
 
 The second and third migrations create data structures only. They do not activate any financial or telecom service. Before applying it to production, test both migrations against a non-production D1 database and review the schema and access policies.
 
@@ -40,7 +43,11 @@ Wallet balances must be calculated from balanced, posted double-entry ledger tra
 
 Bundle orders must use server-verified product prices and provider responses. Recipient phone numbers are intended to be encrypted before storage; raw numbers must not be written to logs. Provider credentials belong only in protected server-side secrets. Live orders require an authorized reseller/agency agreement, provider API, payment confirmation, idempotent order processing, delivery-status reconciliation and refund handling.
 
-### Ordinary mobile calls and SMS\n\nThe website's ordinary-call and SMS actions open the handset's native dialer or SMS composer using the user's own SIM. The mobile operator's normal charges apply. This is a device shortcut, not a FICSDavid telecom service. FICSDavid-originated bulk/transactional SMS, branded sender IDs, short codes, hosted voice or customer call routing require an approved provider/operator integration and review of applicable TCRA licensing, numbering and VAS requirements. Marketing messages must be consent-based and provide a working opt-out.\n\n### Communication privacy and real-time requirements
+### Ordinary mobile calls and SMS
+
+The website's ordinary-call and SMS actions open the handset's native dialer or SMS composer using the user's own SIM. The mobile operator's normal charges apply. This is a device shortcut, not a FICSDavid telecom service. FICSDavid-originated bulk/transactional SMS, branded sender IDs, short codes, hosted voice or customer call routing require an approved provider/operator integration and review of applicable TCRA licensing, numbering and VAS requirements. Marketing messages must be consent-based and provide a working opt-out.
+
+### Communication privacy and real-time requirements
 
 Private messages are represented as encrypted payloads. The application must enforce conversation membership and authorization on every read/write. Key management and encryption must be implemented and reviewed before private messaging is enabled. Voice/video media requires WebRTC plus a suitable TURN service; the D1 signalling table is not a media server. Contacts must remain private to their owner unless explicitly shared.
 
