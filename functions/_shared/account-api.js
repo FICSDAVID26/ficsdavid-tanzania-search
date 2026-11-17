@@ -1,3 +1,5 @@
+import { reserveVerificationLimits } from "./verification-rate-limit.js";
+
 const PASSWORD_ITERATIONS = 310000;
 const CODE_HASH_ITERATIONS = 120000;
 const SESSION_SECONDS = 60 * 60 * 24 * 7;
@@ -119,7 +121,11 @@ function rateLimitError(scope, retryAfterSeconds) {
   const minutes = Math.max(1, Math.ceil(retryAfterSeconds / 60));
   const message = scope === "email"
     ? `Too many requests for this email. Try again in about ${minutes} minute(s).`
-    : `Too many requests from this network. Try again in about ${minutes} minute(s).`;
+    : scope === "phone"
+      ? `Too many requests for this phone number. Try again in about ${minutes} minute(s).`
+      : scope === "network"
+        ? `Too many requests from this network. Try again in about ${minutes} minute(s).`
+        : `Too many verification requests. Try again in about ${minutes} minute(s).`;
   return json({
     error: message,
     limit_scope: scope,
@@ -127,11 +133,6 @@ function rateLimitError(scope, retryAfterSeconds) {
   }, 429, { "Retry-After": String(retryAfterSeconds) });
 }
 
-async function releaseRateLimit(db, key) {
-  await db.prepare(
-    "UPDATE rate_limits SET request_count=MAX(0, request_count-1) WHERE rate_key=?"
-  ).bind(key).run();
-}
 
 async function audit(db, userId, eventType, detail = {}) {
   await db.prepare(
@@ -205,19 +206,26 @@ async function requestCode(request, env) {
   const existing = type === "email"
     ? await env.DB.prepare("SELECT id FROM users WHERE email=?").bind(contact).first()
     : await env.DB.prepare("SELECT id FROM users WHERE phone_e164=?").bind(contact).first();
-  if (existing) return json({ message: "If this contact can be registered, a verification code will be sent." }, 202);
+  if (existing) {
+    // Keep the response shape indistinguishable from a new contact to reduce
+    // account-enumeration signals. The random ID cannot verify or register.
+    return json({
+      message: "If this contact can be registered, a verification code has been sent.",
+      verification_id: crypto.randomUUID()
+    }, 202);
+  }
 
   const ip = request.headers.get("CF-Connecting-IP") || "unknown";
   const contactKey = await sha256("contact:" + contact);
   const ipKey = await sha256("ip:" + ip);
   const contactLimitKey = "code-contact:" + contactKey;
   const ipLimitKey = "code-ip:" + ipKey;
-  const [contactLimit, ipLimit] = await Promise.all([
-    rateLimit(env.DB, contactLimitKey, 3, 3600),
-    rateLimit(env.DB, ipLimitKey, 10, 3600)
-  ]);
-  if (!contactLimit.allowed) return rateLimitError("email", contactLimit.retryAfterSeconds);
-  if (!ipLimit.allowed) return rateLimitError("network", ipLimit.retryAfterSeconds);
+  const verificationLimit = await reserveVerificationLimits(
+    rateLimit, env.DB, contactLimitKey, ipLimitKey, type
+  );
+  if (!verificationLimit.allowed) {
+    return rateLimitError(verificationLimit.scope, verificationLimit.retryAfterSeconds);
+  }
 
   const code = String(crypto.getRandomValues(new Uint32Array(1))[0] % 1000000).padStart(6, "0");
   const saltBytes = crypto.getRandomValues(new Uint8Array(16));
@@ -234,12 +242,9 @@ async function requestCode(request, env) {
   try { delivered = await sendVerification(env, type, contact, code); } catch (_) {}
   if (!delivered) {
     await env.DB.prepare("DELETE FROM verification_codes WHERE id=?").bind(id).run();
-    // A failed delivery should not consume the user's verification request allowance.
-    await Promise.all([
-      releaseRateLimit(env.DB, contactLimitKey),
-      releaseRateLimit(env.DB, ipLimitKey)
-    ]);
-    return json({ error: "Verification email could not be delivered. No account was created. Please check the email service and try again later." }, 503);
+    // Keep the rate-limit reservation: decrementing shared counters here can
+    // erase another concurrent request's reservation and weaken abuse controls.
+    return json({ error: "The verification code could not be delivered. No account was created. Please try again later." }, 503);
   }
   return json({ message: "If this contact can be registered, a verification code has been sent.", verification_id: id }, 202);
 }
@@ -267,12 +272,28 @@ async function verifyCode(request, env) {
   }
   const hash = await derivePassword(code, row.code_salt, CODE_HASH_ITERATIONS);
   if (!constantTimeEqual(hash, row.code_hash)) {
-    await env.DB.prepare("UPDATE verification_codes SET attempts=attempts+1 WHERE id=?").bind(id).run();
+    // Atomic predicate prevents simultaneous wrong attempts exceeding the cap.
+    const attempt = await env.DB.prepare(
+      "UPDATE verification_codes SET attempts=attempts+1 WHERE id=? AND attempts<? AND verified_at IS NULL AND consumed_at IS NULL AND expires_at>? RETURNING attempts"
+    ).bind(id, MAX_CODE_ATTEMPTS, now).first();
+    if (!attempt) return json({ error: "Code is invalid or expired. Request a new code." }, 400);
     return json({ error: "Incorrect code." }, 400);
   }
-  await env.DB.prepare("UPDATE verification_codes SET verified_at=? WHERE id=? AND consumed_at IS NULL")
-    .bind(now, id).run();
-  return json({ message: "Contact verified. You may now create your account." });
+  // Only one concurrent request can transition an unverified code to verified.
+  const verifiedNow = await env.DB.prepare(
+    "UPDATE verification_codes SET verified_at=? WHERE id=? AND attempts<? AND verified_at IS NULL AND consumed_at IS NULL AND expires_at>? RETURNING id"
+  ).bind(now, id, MAX_CODE_ATTEMPTS, now).first();
+  if (verifiedNow) {
+    return json({ message: "Contact verified. You may now create your account." });
+  }
+  // Another correct request may have completed the transition first.
+  const alreadyVerified = await env.DB.prepare(
+    "SELECT id FROM verification_codes WHERE id=? AND verified_at IS NOT NULL AND consumed_at IS NULL AND expires_at>?"
+  ).bind(id, now).first();
+  if (alreadyVerified) {
+    return json({ message: "Contact verified. You may now create your account." });
+  }
+  return json({ error: "Code is invalid or expired. Request a new code." }, 400);
 }
 
 async function register(request, env) {
@@ -315,7 +336,9 @@ async function register(request, env) {
     return json({ error: "This contact may already be registered. Try signing in." }, 409);
   }
 
-  await audit(env.DB, userId, "account_created");
+  // Audit logging must not turn a successfully created account into a
+  // misleading registration failure if the audit table is temporarily unavailable.
+  try { await audit(env.DB, userId, "account_created"); } catch (_) {}
   const rawToken = randomToken();
   const tokenHash = await sha256(rawToken);
   const sessionId = crypto.randomUUID();

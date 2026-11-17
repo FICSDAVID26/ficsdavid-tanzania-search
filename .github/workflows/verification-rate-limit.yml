@@ -1,0 +1,38 @@
+name: Verification rate-limit tests
+
+on:
+  pull_request:
+    paths:
+      - "functions/_shared/account-api.js"
+      - "functions/_shared/verification-rate-limit.js"
+      - "tests/verification-rate-limit.test.mjs"
+      - "tests/test_rate_limit_d1_sql.py"
+      - ".github/workflows/verification-rate-limit.yml"
+  push:
+    branches:
+      - main
+      - fix/verification-rate-limit-accounting
+
+permissions:
+  contents: read
+
+jobs:
+  verification-rate-limit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check account API syntax
+        run: node --check functions/_shared/account-api.js
+      - name: Run verification rate-limit tests
+        run: node --test tests/verification-rate-limit.test.mjs
+      - name: Set up Python for D1-compatible SQL tests
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Run D1-compatible SQLite SQL and concurrency tests
+        run: python tests/test_rate_limit_d1_sql.py
