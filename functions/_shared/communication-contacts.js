@@ -15,7 +15,7 @@ function json(data, status = 200) {
 function b64url(bytes) {
   let value = "";
   for (const byte of bytes) value += String.fromCharCode(byte);
-  return btoa(value).replace(/\\+/g, "-").replace(/\\//g, "_").replace(/=+$/g, "");
+  return btoa(value).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
 
 function fromB64url(value) {
@@ -27,14 +27,14 @@ function normalizeContact(type, value) {
   const input = String(value || "").trim();
   if (type === "email") {
     const email = input.toLowerCase();
-    if (email.length > 254 || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) return null;
+    if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return null;
     return email;
   }
   if (type === "phone") {
-    let phone = input.replace(/[\\s().-]/g, "");
-    if (/^0\\d{9}$/.test(phone)) phone = "+255" + phone.slice(1);
-    if (/^255\\d{9}$/.test(phone)) phone = "+" + phone;
-    if (!/^\\+[1-9]\\d{7,14}$/.test(phone)) return null;
+    let phone = input.replace(/[\s().-]/g, "");
+    if (/^0\d{9}$/.test(phone)) phone = "+255" + phone.slice(1);
+    if (/^255\d{9}$/.test(phone)) phone = "+" + phone;
+    if (!/^\+[1-9]\d{7,14}$/.test(phone)) return null;
     return phone;
   }
   return null;
