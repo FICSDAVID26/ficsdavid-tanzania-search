@@ -1,4 +1,4 @@
-const PASSWORD_ITERATIONS = 310000;
+import { reserveVerificationLimits } from "./verification-rate-limit.js";\n\nconst PASSWORD_ITERATIONS = 310000;
 const CODE_HASH_ITERATIONS = 120000;
 const SESSION_SECONDS = 60 * 60 * 24 * 7;
 const CODE_SECONDS = 10 * 60;
@@ -129,23 +129,6 @@ function rateLimitError(scope, retryAfterSeconds) {
   }, 429, { "Retry-After": String(retryAfterSeconds) });
 }
 
-// Check verification limits sequentially. A successful first reservation may
-// remain consumed if the second limit rejects the request; this is deliberately
-// conservative. Never decrement shared counters after failure because concurrent
-// requests could otherwise lose each other's reservations.
-async function reserveVerificationLimits(db, contactKey, ipKey) {
-  const contact = await rateLimit(db, contactKey, 3, 3600);
-  if (!contact.allowed) {
-    return { allowed: false, scope: "email", retryAfterSeconds: contact.retryAfterSeconds };
-  }
-
-  const network = await rateLimit(db, ipKey, 10, 3600);
-  if (!network.allowed) {
-    return { allowed: false, scope: "network", retryAfterSeconds: network.retryAfterSeconds };
-  }
-
-  return { allowed: true };
-}
 
 async function audit(db, userId, eventType, detail = {}) {
   await db.prepare(
