@@ -31,7 +31,8 @@ Four D1 migrations are present:
 
 - `0001_account_foundation.sql` — users, verification codes, sessions, rate limits and security events.
 - `0002_connected_services.sql` — service preferences, Wallet accounts and immutable ledger entries, Bundle providers/products/orders, contacts, conversations, encrypted-message payload storage, call records, short-lived signalling envelopes and service audit events.
-- `0003_mobile_sms_voice.sql` — opt-in/opt-out records, SMS/voice job tracking, provider webhook receipts, voice session tracking and provider configuration status.\n- `0004_communication_contacts.sql` — encrypted phone/email contact fields and private-contact lookup indexes.
+- `0003_mobile_sms_voice.sql` — opt-in/opt-out records, SMS/voice job tracking, provider webhook receipts, voice session tracking and provider configuration status.
+- `0004_communication_contacts.sql` — encrypted phone/email contact fields and private-contact lookup indexes.
 
 The second and third migrations create data structures only. They do not activate any financial or telecom service. Before applying it to production, test both migrations against a non-production D1 database and review the schema and access policies.
 
@@ -49,7 +50,9 @@ The website's ordinary-call and SMS actions open the handset's native dialer or 
 
 ### Communication privacy and real-time requirements
 
-Private messages are represented as encrypted payloads. The application must enforce conversation membership and authorization on every read/write. Key management and encryption must be implemented and reviewed before private messaging is enabled. Voice/video media requires WebRTC plus a suitable TURN service; the D1 signalling table is not a media server.\n\nThe Contacts interface and authenticated API are scaffolded at `GET /api/communication/contacts`, `POST /api/communication/contacts`, and `DELETE /api/communication/contacts/:id`. Contact phone numbers and email addresses are encrypted at rest with `MOBILE_DATA_ENCRYPTION_KEY`; lookup hashes use `MOBILE_PHONE_HASH_KEY`. Every request is scoped to the signed-in owner, contact data is not shared with other users, and contact changes are audited. Apply migration `0004_communication_contacts.sql` and configure both server-only 32-byte base64url keys before testing. The feature is not live until deployment and end-to-end verification are complete.
+The D1 schema has a ciphertext column for messages, but no end-to-end encryption client, device-key lifecycle, or private-message API is implemented. Treat it as a storage foundation only; private messaging must remain disabled until the security gates in [the private messaging security plan](docs/COMMUNICATION_PRIVATE_MESSAGING_SECURITY.md) are complete. Every future read/write must enforce active conversation membership. Voice/video media requires WebRTC plus a suitable TURN service; the D1 signalling table is not a media server.
+
+The Contacts interface and authenticated API are scaffolded at `GET /api/communication/contacts`, `POST /api/communication/contacts`, and `DELETE /api/communication/contacts/:id`. Contact phone numbers and email addresses are encrypted at rest with `MOBILE_DATA_ENCRYPTION_KEY`; lookup hashes use `MOBILE_PHONE_HASH_KEY`. Every request is scoped to the signed-in owner, contact data is not shared with other users, and contact changes are audited. Apply migration `0004_communication_contacts.sql` and configure both server-only 32-byte base64url keys before testing. The feature is not live until deployment and end-to-end verification are complete.
 
 ### SMS API foundation
 
