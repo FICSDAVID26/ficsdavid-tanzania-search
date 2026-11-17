@@ -129,78 +129,22 @@ function rateLimitError(scope, retryAfterSeconds) {
   }, 429, { "Retry-After": String(retryAfterSeconds) });
 }
 
-// Reserve both verification limits in one D1 batch. D1 executes batch statements
-// transactionally, so a denied IP limit cannot consume the contact allowance,
-// and a denied contact limit cannot consume the IP allowance.
+// Check verification limits sequentially. A successful first reservation may
+// remain consumed if the second limit rejects the request; this is deliberately
+// conservative. Never decrement shared counters after failure because concurrent
+// requests could otherwise lose each other's reservations.
 async function reserveVerificationLimits(db, contactKey, ipKey) {
-  const now = Math.floor(Date.now() / 1000);
-  const windowStart = now - 3600;
-  const results = await db.batch([
-    db.prepare(
-      `INSERT INTO rate_limits(rate_key, window_start, request_count)
-       SELECT ?, ?, 1
-       WHERE NOT EXISTS (
-         SELECT 1 FROM rate_limits
-         WHERE rate_key=? AND window_start>? AND request_count>=?
-       )
-       ON CONFLICT(rate_key) DO UPDATE SET
-         request_count = CASE
-           WHEN rate_limits.window_start <= ? THEN 1
-           ELSE rate_limits.request_count + 1
-         END,
-         window_start = CASE
-           WHEN rate_limits.window_start <= ? THEN excluded.window_start
-           ELSE rate_limits.window_start
-         END
-       WHERE rate_limits.window_start <= ? OR rate_limits.request_count < ?
-       RETURNING request_count, window_start`
-    ).bind(contactKey, now, ipKey, windowStart, 10, windowStart, windowStart, windowStart, 3),
-    db.prepare(
-      `INSERT INTO rate_limits(rate_key, window_start, request_count)
-       SELECT ?, ?, 1
-       WHERE EXISTS (
-         SELECT 1 FROM rate_limits
-         WHERE rate_key=? AND (window_start<=? OR request_count<?)
-       )
-       ON CONFLICT(rate_key) DO UPDATE SET
-         request_count = CASE
-           WHEN rate_limits.window_start <= ? THEN 1
-           ELSE rate_limits.request_count + 1
-         END,
-         window_start = CASE
-           WHEN rate_limits.window_start <= ? THEN excluded.window_start
-           ELSE rate_limits.window_start
-         END
-       WHERE rate_limits.window_start <= ? OR rate_limits.request_count < ?
-       RETURNING request_count, window_start`
-    ).bind(ipKey, now, contactKey, windowStart, 3, windowStart, windowStart, windowStart, 10)
-  ]);
+  const contact = await rateLimit(db, contactKey, 3, 3600);
+  if (!contact.allowed) {
+    return { allowed: false, scope: "email", retryAfterSeconds: contact.retryAfterSeconds };
+  }
 
-  const contactReserved = Boolean(results[0]?.results?.length);
-  const ipReserved = Boolean(results[1]?.results?.length);
-  if (contactReserved && ipReserved) return { allowed: true };
+  const network = await rateLimit(db, ipKey, 10, 3600);
+  if (!network.allowed) {
+    return { allowed: false, scope: "network", retryAfterSeconds: network.retryAfterSeconds };
+  }
 
-  // A read-only lookup is used only to choose a useful Retry-After response;
-  // the atomic batch above is what enforces both limits.
-  const current = await db.prepare(
-    "SELECT rate_key, window_start, request_count FROM rate_limits WHERE rate_key IN (?, ?)"
-  ).bind(contactKey, ipKey).all();
-  const rows = current?.results || [];
-  const contact = rows.find(row => row.rate_key === contactKey);
-  const ip = rows.find(row => row.rate_key === ipKey);
-  const contactBlocked = contact && contact.window_start > windowStart && contact.request_count >= 3;
-  const ipBlocked = ip && ip.window_start > windowStart && ip.request_count >= 10;
-  const blocked = [];
-  if (contactBlocked) blocked.push(contact);
-  if (ipBlocked) blocked.push(ip);
-  const retryAfterSeconds = blocked.length
-    ? Math.max(1, Math.max(...blocked.map(row => row.window_start + 3600 - now)))
-    : 3600;
-  return {
-    allowed: false,
-    scope: contactBlocked ? "email" : ipBlocked ? "network" : "verification",
-    retryAfterSeconds
-  };
+  return { allowed: true };
 }
 
 async function audit(db, userId, eventType, detail = {}) {
