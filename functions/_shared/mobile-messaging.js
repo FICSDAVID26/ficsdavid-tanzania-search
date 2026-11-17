@@ -8,7 +8,7 @@ function json(data, status = 200) {
 function b64url(bytes) {
   let s = "";
   for (const b of bytes) s += String.fromCharCode(b);
-  return btoa(s).replace(/\\+/g, "-").replace(/\\//g, "_").replace(/=+$/g, "");
+  return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
 function fromB64url(value) {
   const s = String(value).replace(/-/g, "+").replace(/_/g, "/");
@@ -59,7 +59,9 @@ export async function handleMobileSms(request, env, user, pathname) {
   const body = await readBody(request);
   if (!body) return json({ error: "Tuma taarifa sahihi za JSON." }, 400);
   const now = Math.floor(Date.now()/1000);
-  let phoneHash;\n  try { phoneHash = await digestPhone(user.phone_e164, env); }\n  catch (_) { return json({ error: "Usanidi wa usalama wa hifadhi fiche haujakamilika." }, 503); }
+  let phoneHash;
+  try { phoneHash = await digestPhone(user.phone_e164, env); }
+  catch (_) { return json({ error: "Usanidi wa usalama wa hifadhi fiche haujakamilika." }, 503); }
 
   if (pathname === "/api/mobile/sms/consent") {
     const purpose = body.purpose;
@@ -91,7 +93,9 @@ export async function handleMobileSms(request, env, user, pathname) {
       return json({ error: "Kikomo cha SMS kimefikiwa. Jaribu baadaye." }, 429);
     }
     const duplicate = await env.DB.prepare("SELECT id,status,user_id FROM mobile_message_jobs WHERE idempotency_key=?").bind(idempotencyKey).first();
-    if (duplicate) return duplicate.user_id === user.id\n      ? json({ error: "Ombi hili limeshawasilishwa.", job_id: duplicate.id, status: duplicate.status }, 409)\n      : json({ error: "Idempotency-Key tayari imetumika." }, 409);
+    if (duplicate) return duplicate.user_id === user.id
+      ? json({ error: "Ombi hili limeshawasilishwa.", job_id: duplicate.id, status: duplicate.status }, 409)
+      : json({ error: "Idempotency-Key tayari imetumika." }, 409);
     let phoneCiphertext, messageCiphertext;
     try {
       phoneCiphertext = await encrypt(user.phone_e164, env);
