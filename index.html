@@ -439,22 +439,26 @@ footer {
     </form>
 </section>
 
-<section class="panel" id="communicationCentre">
+<section class="panel" id="communicationCentre" aria-labelledby="communicationTitle">
     <h2 id="communicationTitle">FICSDavid Communication Centre</h2>
-    <p class="small" id="communicationDescription">Choose how you want to communicate. Secure communication features are being prepared.</p>
-    <div class="grid">
-        <button class="service" type="button" onclick="openCommunicationTool('call')">
-            <span class="emoji">📞</span><h3 id="callTitle">Call</h3><p id="callDescription">Voice communication</p>
+    <p class="small" id="communicationDescription">One connected communication centre for calls, video, private messages and contacts.</p>
+    <div class="grid communication-grid">
+        <button class="service" type="button" onclick="openCommunicationTool('call')" aria-label="Open voice calls">
+            <span class="emoji">📞</span><h3 id="callTitle">Call</h3><p id="callDescription">Voice calls</p>
         </button>
-        <button class="service" type="button" onclick="openCommunicationTool('video')">
-            <span class="emoji">📹</span><h3 id="videoTitle">Video Call</h3><p id="videoDescription">Face-to-face communication</p>
+        <button class="service" type="button" onclick="openCommunicationTool('video')" aria-label="Open video calls">
+            <span class="emoji">📹</span><h3 id="videoTitle">Video Call</h3><p id="videoDescription">Face-to-face calls</p>
         </button>
-        <button class="service" type="button" onclick="openCommunicationTool('messages')">
+        <button class="service" type="button" onclick="openCommunicationTool('messages')" aria-label="Open private messages">
             <span class="emoji">💬</span><h3 id="messagesTitle">Messages</h3><p id="messagesDescription">Private conversations</p>
         </button>
-        <button class="service" type="button" onclick="openCommunicationTool('contacts')">
-            <span class="emoji">👥</span><h3 id="contactsTitle">Contacts</h3><p id="contactsDescription">Manage your contacts</p>
+        <button class="service" type="button" onclick="openCommunicationTool('contacts')" aria-label="Open contacts">
+            <span class="emoji">👥</span><h3 id="contactsTitle">Contacts</h3><p id="contactsDescription">Saved people and connections</p>
         </button>
+    </div>
+    <div class="data-notice" role="status" aria-live="polite">
+        <strong data-en="Integrated service centre — connection in progress." data-sw="Kituo kimoja cha huduma — maandalizi ya miunganisho yanaendelea.">Integrated service centre — connection in progress.</strong>
+        <span data-en="These four tools share one planned FICSDavid account. Live calling, video, message delivery and cloud-synced contacts will only activate after secure communication services and infrastructure are connected." data-sw="Huduma hizi nne zimepangwa kutumia akaunti moja ya FICSDavid. Simu, video, utumaji ujumbe na contacts zitawashwa baada ya kuunganisha mifumo salama ya mawasiliano."> These four tools share one planned FICSDavid account. Live calling, video, message delivery and cloud-synced contacts will only activate after secure communication services and infrastructure are connected.</span>
     </div>
 </section>
 
@@ -919,7 +923,10 @@ function voiceSearch() {
 
 }
 
-/* FICSDAVID COMMUNICATION CENTRE */
+/* FICSDAVID COMMUNICATION CENTRE
+   All four communication tools are presented from one shared hub.
+   Live media, message transport and synced contacts remain disabled until
+   their authenticated backend and provider infrastructure are deployed. */
 function openCommunicationTool(tool) {
     const content = {
         call: {
