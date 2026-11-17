@@ -1,0 +1,20 @@
+{
+  "id": "/",
+  "name": "FICSDavid — One Digital Platform",
+  "short_name": "FICSDavid",
+  "description": "One digital platform. Many services. Connected for everyone, everywhere.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f1f5fb",
+  "theme_color": "#07152f",
+  "icons": [
+    {
+      "src": "/icons/ficsdavid.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
