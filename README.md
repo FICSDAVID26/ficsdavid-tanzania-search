@@ -8,7 +8,7 @@ FICSDavid is one expandable digital platform, beginning in Tanzania and designed
 
 | Area | Current status |
 |---|---|
-| Main website interface | Static HTML prototype |
+| Main website interface | Static HTML prototype; PWA manifest, service worker and Android-sized icons added; deployment and install verification pending |
 | Kiswahili and English | Basic language switch |
 | Search | Limited search integrations |
 | Shared account API | Starter routes implemented; deployment and security verification still required |
