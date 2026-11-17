@@ -460,6 +460,21 @@ footer {
         <strong data-en="Integrated service centre — connection in progress." data-sw="Kituo kimoja cha huduma — maandalizi ya miunganisho yanaendelea.">Integrated service centre — connection in progress.</strong>
         <span data-en="These four tools share one planned FICSDavid account. Live calling, video, message delivery and cloud-synced contacts will only activate after secure communication services and infrastructure are connected." data-sw="Huduma hizi nne zimepangwa kutumia akaunti moja ya FICSDavid. Simu, video, utumaji ujumbe na contacts zitawashwa baada ya kuunganisha mifumo salama ya mawasiliano."> These four tools share one planned FICSDavid account. Live calling, video, message delivery and cloud-synced contacts will only activate after secure communication services and infrastructure are connected.</span>
     </div>
+
+<section class="panel" id="ordinaryMobileCentre" aria-labelledby="ordinaryMobileTitle">
+  <h2 id="ordinaryMobileTitle" data-en="Ordinary Mobile Calls & SMS" data-sw="Simu na SMS za Kawaida">Ordinary Mobile Calls & SMS</h2>
+  <p class="small" data-en="Reach people using their normal mobile network, even when they are not using FICSDavid internet calling." data-sw="Wafikie watu kupitia mtandao wao wa kawaida wa simu, hata kama hawatumii simu za intaneti za FICSDavid.">Reach people using their normal mobile network, even when they are not using FICSDavid internet calling.</p>
+  <label for="ordinaryMobileNumber" data-en="Mobile number" data-sw="Namba ya simu">Mobile number</label>
+  <input id="ordinaryMobileNumber" type="tel" inputmode="tel" autocomplete="tel" maxlength="16" placeholder="+2557XXXXXXXX" pattern="(\+?255|0)[0-9]{9}">
+  <label for="ordinarySmsText" data-en="SMS message" data-sw="Ujumbe wa SMS">SMS message</label>
+  <textarea id="ordinarySmsText" rows="3" maxlength="300" placeholder="Write your message..."></textarea>
+  <div class="data-service-grid">
+    <button class="primary" type="button" onclick="startOrdinaryMobileCall()" data-en="Open phone dialer" data-sw="Fungua sehemu ya kupiga simu">Open phone dialer</button>
+    <button class="primary" type="button" onclick="startOrdinarySms()" data-en="Open SMS app" data-sw="Fungua sehemu ya SMS">Open SMS app</button>
+  </div>
+  <div class="data-notice" data-en="These buttons open the phone's own dialer or SMS app. Your mobile operator's normal call or SMS charges may apply. FICSDavid does not place the call or send the SMS itself yet. Business SMS campaigns and calls from a FICSDavid number require an approved provider connection and any required TCRA authorization." data-sw="Vitufe hivi vinafungua sehemu ya kupiga simu au kutuma SMS kwenye simu yako. Gharama za kawaida za mtandao wako zinaweza kutumika. FICSDavid yenyewe bado haipigi simu wala kutuma SMS. SMS za biashara na simu kutoka namba ya FICSDavid zitahitaji mtoa huduma aliyeidhinishwa na vibali vinavyohitajika vya TCRA.">These buttons open the phone's own dialer or SMS app. Your mobile operator's normal call or SMS charges may apply. FICSDavid does not place the call or send the SMS itself yet. Business SMS campaigns and calls from a FICSDavid number require an approved provider connection and any required TCRA authorization.</div>
+</section>
+
 </section>
 
 <section>
