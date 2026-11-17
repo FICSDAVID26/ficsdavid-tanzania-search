@@ -239,6 +239,17 @@ footer {
 #accountStatus[data-state="error"]{background:#fff1f0;color:#9b241c}
 #accountStatus[data-state="success"]{background:#effaf2;color:#176b35}
 
+
+.communication-contacts { margin-top: 14px; background: #fff; border: 1px solid #dce5f0; border-radius: 12px; padding: 16px; }
+.communication-contacts form { display: grid; gap: 8px; }
+.communication-contacts label { font-weight: 700; font-size: 14px; }
+.communication-contacts .contact-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid #e8edf4; }
+.communication-contacts .contact-row:last-child { border-bottom: 0; }
+.communication-contacts .contact-details { min-width: 0; overflow-wrap: anywhere; }
+.communication-contacts .contact-name { font-weight: 700; }
+.communication-contacts .contact-value { color: #65748a; font-size: 13px; margin-top: 3px; }
+.communication-contacts .contact-delete { background: #fff; color: #a12a2a; border: 1px solid #e3baba; border-radius: 8px; padding: 8px 10px; flex: 0 0 auto; }
+#communicationContactsStatus { margin: 8px 0; }
 </style>
 </head>
 
@@ -460,6 +471,28 @@ footer {
         <strong data-en="Integrated service centre — connection in progress." data-sw="Kituo kimoja cha huduma — maandalizi ya miunganisho yanaendelea.">Integrated service centre — connection in progress.</strong>
         <span data-en="These four tools share one planned FICSDavid account. Live calling, video, message delivery and cloud-synced contacts will only activate after secure communication services and infrastructure are connected." data-sw="Huduma hizi nne zimepangwa kutumia akaunti moja ya FICSDavid. Simu, video, utumaji ujumbe na contacts zitawashwa baada ya kuunganisha mifumo salama ya mawasiliano."> These four tools share one planned FICSDavid account. Live calling, video, message delivery and cloud-synced contacts will only activate after secure communication services and infrastructure are connected.</span>
     </div>
+</section>
+
+<section class="panel communication-contacts" id="communicationContactsPanel" hidden aria-labelledby="communicationContactsTitle">
+  <div class="results-heading">
+    <h2 id="communicationContactsTitle" data-en="My FICSDavid Contacts" data-sw="Contacts Zangu za FICSDavid">My FICSDavid Contacts</h2>
+    <button type="button" class="primary" onclick="closeCommunicationContacts()" data-en="Close" data-sw="Funga">Close</button>
+  </div>
+  <p class="small" data-en="Save a person's name and phone number or email. Your contact details are encrypted before they are stored." data-sw="Hifadhi jina la mtu pamoja na namba yake ya simu au barua pepe. Taarifa za contact husimbwa kwa usalama kabla ya kuhifadhiwa.">Save a person's name and phone number or email. Your contact details are encrypted before they are stored.</p>
+  <form id="communicationContactForm" onsubmit="saveCommunicationContact(event)">
+    <label for="communicationContactName" data-en="Contact name" data-sw="Jina la contact">Contact name</label>
+    <input id="communicationContactName" type="text" maxlength="80" autocomplete="off" required placeholder="Name">
+    <label for="communicationContactType" data-en="Contact method" data-sw="Aina ya mawasiliano">Contact method</label>
+    <select id="communicationContactType" required>
+      <option value="phone" data-en="Phone number" data-sw="Namba ya simu">Phone number</option>
+      <option value="email" data-en="Email address" data-sw="Barua pepe">Email address</option>
+    </select>
+    <label for="communicationContactValue" data-en="Phone number or email" data-sw="Namba ya simu au barua pepe">Phone number or email</label>
+    <input id="communicationContactValue" type="text" maxlength="254" autocomplete="off" required placeholder="+2557XXXXXXXX">
+    <button class="primary" id="communicationContactSaveButton" type="submit" data-en="Save contact" data-sw="Hifadhi contact">Save contact</button>
+  </form>
+  <p id="communicationContactsStatus" class="small" role="status" aria-live="polite"></p>
+  <div id="communicationContactsList" aria-live="polite"></div>
 </section>
 
 <section class="panel" id="ordinaryMobileCentre" aria-labelledby="ordinaryMobileTitle">
@@ -981,6 +1014,14 @@ function startOrdinarySms() {
    Live media, message transport and synced contacts remain disabled until
    their authenticated backend and provider infrastructure are deployed. */
 function openCommunicationTool(tool) {
+    if (tool === "contacts") {
+        document.getElementById("servicePanel").hidden = true;
+        const contactsPanel = document.getElementById("communicationContactsPanel");
+        contactsPanel.hidden = false;
+        contactsPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+        loadCommunicationContacts();
+        return;
+    }
     const content = {
         call: {
             en: "Voice calling is part of FICSDavid Communication Centre. Secure accounts, call signalling and audio infrastructure must be connected before calls can work.",
@@ -1010,6 +1051,121 @@ function openCommunicationTool(tool) {
     const panel = document.getElementById("servicePanel");
     panel.hidden = false;
     panel.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+async function loadCommunicationContacts() {
+    const status = document.getElementById("communicationContactsStatus");
+    const list = document.getElementById("communicationContactsList");
+    status.textContent = currentLanguage === "sw" ? "Inapakia contacts..." : "Loading contacts...";
+    list.replaceChildren();
+    try {
+        const response = await fetch("/api/communication/contacts", { credentials: "same-origin" });
+        const result = await response.json();
+        if (response.status === 401) {
+            status.textContent = currentLanguage === "sw"
+                ? "Ingia kwenye akaunti yako ya FICSDavid ili kutumia contacts."
+                : "Sign in to your FICSDavid account to use contacts.";
+            return;
+        }
+        if (!response.ok) throw new Error(result.error || "Contacts are not available.");
+        renderCommunicationContacts(result.contacts || []);
+        status.textContent = currentLanguage === "sw"
+            ? "Contacts zako zimepakiwa salama."
+            : "Your contacts loaded securely.";
+    } catch (error) {
+        status.textContent = currentLanguage === "sw"
+            ? "Contacts hazijapatikana. Hakikisha migration na funguo za usalama zimesanidiwa."
+            : "Contacts are unavailable. Check that the migration and security keys are configured.";
+    }
+}
+
+function renderCommunicationContacts(contacts) {
+    const list = document.getElementById("communicationContactsList");
+    list.replaceChildren();
+    if (!contacts.length) {
+        const empty = document.createElement("p");
+        empty.className = "small";
+        empty.textContent = currentLanguage === "sw" ? "Bado hujahifadhi contact." : "You have not saved any contacts yet.";
+        list.appendChild(empty);
+        return;
+    }
+    contacts.forEach(function(contact) {
+        const row = document.createElement("div");
+        row.className = "contact-row";
+        const details = document.createElement("div");
+        details.className = "contact-details";
+        const name = document.createElement("div");
+        name.className = "contact-name";
+        name.textContent = contact.display_label || "";
+        const value = document.createElement("div");
+        value.className = "contact-value";
+        value.textContent = contact.contact_value || (currentLanguage === "sw" ? "Taarifa za zamani hazipatikani" : "Legacy contact details unavailable");
+        details.append(name, value);
+        if (contact.is_ficsdavid_user) {
+            const linked = document.createElement("div");
+            linked.className = "contact-value";
+            linked.textContent = currentLanguage === "sw" ? "Mtumiaji wa FICSDavid" : "FICSDavid user";
+            details.appendChild(linked);
+        }
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "contact-delete";
+        remove.textContent = currentLanguage === "sw" ? "Futa" : "Delete";
+        remove.addEventListener("click", function() { deleteCommunicationContact(contact.id); });
+        row.append(details, remove);
+        list.appendChild(row);
+    });
+}
+
+async function saveCommunicationContact(event) {
+    event.preventDefault();
+    const button = document.getElementById("communicationContactSaveButton");
+    const status = document.getElementById("communicationContactsStatus");
+    button.disabled = true;
+    status.textContent = currentLanguage === "sw" ? "Inahifadhi..." : "Saving...";
+    try {
+        const response = await fetch("/api/communication/contacts", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                display_label: document.getElementById("communicationContactName").value.trim(),
+                contact_type: document.getElementById("communicationContactType").value,
+                contact_value: document.getElementById("communicationContactValue").value.trim()
+            })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Contact could not be saved.");
+        document.getElementById("communicationContactForm").reset();
+        await loadCommunicationContacts();
+        status.textContent = currentLanguage === "sw" ? "Contact imehifadhiwa." : "Contact saved.";
+    } catch (error) {
+        status.textContent = error.message;
+    } finally {
+        button.disabled = false;
+    }
+}
+
+async function deleteCommunicationContact(id) {
+    const confirmed = confirm(currentLanguage === "sw" ? "Una uhakika unataka kufuta contact hii?" : "Are you sure you want to delete this contact?");
+    if (!confirmed) return;
+    const status = document.getElementById("communicationContactsStatus");
+    try {
+        const response = await fetch("/api/communication/contacts/" + encodeURIComponent(id), {
+            method: "DELETE",
+            credentials: "same-origin"
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Contact could not be deleted.");
+        await loadCommunicationContacts();
+        status.textContent = currentLanguage === "sw" ? "Contact imefutwa." : "Contact deleted.";
+    } catch (error) {
+        status.textContent = error.message;
+    }
+}
+
+function closeCommunicationContacts() {
+    document.getElementById("communicationContactsPanel").hidden = true;
 }
 
 /* SERVICE INFORMATION */
