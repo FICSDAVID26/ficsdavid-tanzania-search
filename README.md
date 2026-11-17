@@ -15,7 +15,7 @@ FICSDavid is one expandable digital platform, beginning in Tanzania and designed
 | Account verification and sessions | Starter workflow; delivery configuration and deployment required |
 | Bundle Services | Front-end request preview and D1 schema foundation; no live provider catalogue, price validation, payment or data delivery |
 | FICSDavid Wallet | D1 ledger schema foundation only; no active balance, deposits, transfers, withdrawals or payment processing |
-| Communication Centre | Shared internet Call, Video Call, Messages and Contacts interface; D1 data foundation only, no live messaging or calls |
+| Communication Centre | Shared Call, Video Call, Messages and Contacts interface; private Contacts API and encrypted-storage code scaffolded, but migration, secret configuration and deployment are still required. Internet calls, video and private messages are not live |
 | Ordinary mobile calls and SMS | Website can open the user's native phone dialer and SMS composer; the customer uses their own SIM/operator. FICSDavid does not yet originate calls or send SMS through a gateway |
 | Business SMS / hosted voice | Database foundation only; requires an approved SMS/voice gateway or operator agreement, opt-in/opt-out handling, sender identity approval and regulatory review |
 | Mobile money and bank integrations | Not connected |
@@ -27,11 +27,11 @@ The account foundation is intended to provide one verified identity for the plat
 
 ## Connected services database foundation
 
-Three D1 migrations are present:
+Four D1 migrations are present:
 
 - `0001_account_foundation.sql` — users, verification codes, sessions, rate limits and security events.
 - `0002_connected_services.sql` — service preferences, Wallet accounts and immutable ledger entries, Bundle providers/products/orders, contacts, conversations, encrypted-message payload storage, call records, short-lived signalling envelopes and service audit events.
-- `0003_mobile_sms_voice.sql` — opt-in/opt-out records, SMS/voice job tracking, provider webhook receipts, voice session tracking and provider configuration status.
+- `0003_mobile_sms_voice.sql` — opt-in/opt-out records, SMS/voice job tracking, provider webhook receipts, voice session tracking and provider configuration status.\n- `0004_communication_contacts.sql` — encrypted phone/email contact fields and private-contact lookup indexes.
 
 The second and third migrations create data structures only. They do not activate any financial or telecom service. Before applying it to production, test both migrations against a non-production D1 database and review the schema and access policies.
 
@@ -49,7 +49,7 @@ The website's ordinary-call and SMS actions open the handset's native dialer or 
 
 ### Communication privacy and real-time requirements
 
-Private messages are represented as encrypted payloads. The application must enforce conversation membership and authorization on every read/write. Key management and encryption must be implemented and reviewed before private messaging is enabled. Voice/video media requires WebRTC plus a suitable TURN service; the D1 signalling table is not a media server. Contacts must remain private to their owner unless explicitly shared.
+Private messages are represented as encrypted payloads. The application must enforce conversation membership and authorization on every read/write. Key management and encryption must be implemented and reviewed before private messaging is enabled. Voice/video media requires WebRTC plus a suitable TURN service; the D1 signalling table is not a media server.\n\nThe Contacts interface and authenticated API are scaffolded at `GET /api/communication/contacts`, `POST /api/communication/contacts`, and `DELETE /api/communication/contacts/:id`. Contact phone numbers and email addresses are encrypted at rest with `MOBILE_DATA_ENCRYPTION_KEY`; lookup hashes use `MOBILE_PHONE_HASH_KEY`. Every request is scoped to the signed-in owner, contact data is not shared with other users, and contact changes are audited. Apply migration `0004_communication_contacts.sql` and configure both server-only 32-byte base64url keys before testing. The feature is not live until deployment and end-to-end verification are complete.
 
 ### SMS API foundation
 
@@ -74,7 +74,7 @@ The existing encrypted Cloudflare secret named `RESEND_API_KEY` must remain prot
 
 - The current prototype is not a live Wallet. Do not send money or enter a financial PIN.
 - The Bundle form is a preview only. It does not charge a customer or deliver data.
-- Internet Communication Centre buttons do not yet place real internet calls, deliver private messages or synchronize contacts. The new ordinary mobile call/SMS shortcuts open the phone's own apps; they do not send through FICSDavid.
+- Internet Communication Centre does not yet place real internet calls, deliver private messages or synchronize contacts. The Contacts API is code-only until migration `0004`, the required server-only secrets, deployment and testing are complete. The ordinary mobile call/SMS shortcuts open the phone's own apps; they do not send through FICSDavid.
 - A GitHub commit does not prove that Cloudflare has deployed a change or that a D1 migration has been applied.
 - Do not describe any service as live until deployment, integration and end-to-end testing have been verified.
 
