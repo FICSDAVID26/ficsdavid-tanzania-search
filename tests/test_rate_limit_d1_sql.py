@@ -7,6 +7,16 @@ import unittest
 # This executes the same single-statement UPSERT/RETURNING SQL used by
 # functions/_shared/account-api.js against SQLite, the SQL engine underlying D1.
 # It is a local compatibility/concurrency check, not a live Cloudflare D1 test.
+WRONG_ATTEMPT_SQL = """UPDATE verification_codes SET attempts=attempts+1
+WHERE id=? AND attempts<? AND verified_at IS NULL
+  AND consumed_at IS NULL AND expires_at>?
+RETURNING attempts"""
+
+VERIFY_CODE_SQL = """UPDATE verification_codes SET verified_at=?
+WHERE id=? AND attempts<? AND verified_at IS NULL
+  AND consumed_at IS NULL AND expires_at>?
+RETURNING id"""
+
 RATE_LIMIT_SQL = '''INSERT INTO rate_limits(rate_key, window_start, request_count)
 VALUES (?, ?, 1)
 ON CONFLICT(rate_key) DO UPDATE SET
@@ -28,6 +38,7 @@ class RateLimitSqlTests(unittest.TestCase):
         os.close(fd)
         with sqlite3.connect(self.path) as db:
             db.execute("CREATE TABLE rate_limits (rate_key TEXT PRIMARY KEY, window_start INTEGER NOT NULL, request_count INTEGER NOT NULL)")
+            db.execute("CREATE TABLE verification_codes (id TEXT PRIMARY KEY, attempts INTEGER NOT NULL DEFAULT 0, verified_at INTEGER, consumed_at INTEGER, expires_at INTEGER NOT NULL)")
 
     def tearDown(self):
         os.unlink(self.path)
