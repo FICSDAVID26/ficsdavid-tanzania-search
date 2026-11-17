@@ -1287,8 +1287,8 @@ function openService(service) {
         },
 
         security: {
-            en: "Account creation, login, password reset, PIN verification and identity checks are not active. No password or PIN is being verified or protected by this page. These features require a properly secured authentication backend before users can register.",
-            sw: "Kutengeneza akaunti, kuingia, kubadilisha password, kuthibitisha PIN na utambulisho bado havijaanza. Ukurasa huu hauhakiki wala kulinda password au PIN. Mfumo salama wa uthibitishaji lazima uunganishwe kabla ya usajili."
+            en: "The starter account API includes sign-in, contact verification and account creation. New registration depends on the configured email or SMS delivery channel and the deployed database schema. Password reset, account recovery, PIN verification and identity checks are not available yet. Complete deployment and security testing before production use.",
+            sw: "API ya mwanzo ya akaunti ina uwezo wa kuingia, kuthibitisha mawasiliano na kufungua akaunti. Usajili mpya unategemea usanidi wa kutuma code kwa email au SMS na database iliyowekwa. Kubadilisha password, kurejesha akaunti, uthibitishaji wa PIN na utambulisho bado havipatikani. Kamilisha deployment na majaribio ya usalama kabla ya matumizi ya production."
         },
 
         caller: {
@@ -1400,8 +1400,20 @@ function accountContact(type, value) {
 async function refreshAccountState() {
     try {
         const health = await accountApi("/api/health");
-        accountServiceReady = health.status === "ok";
+        accountServiceReady = health.status === "ok" && health.database_schema === "ready";
         if (!accountServiceReady) throw new Error("Account service is temporarily unavailable.");
+        const channels = health.registration || {};
+        const emailReady = channels.email === true;
+        const phoneReady = channels.phone === true;
+        const registerType = document.getElementById("registerContactType");
+        const emailOption = registerType.querySelector('option[value="email"]');
+        const phoneOption = registerType.querySelector('option[value="phone"]');
+        emailOption.disabled = !emailReady;
+        phoneOption.disabled = !phoneReady;
+        if (!emailReady && phoneReady) registerType.value = "phone";
+        else if (emailReady && !phoneReady) registerType.value = "email";
+        document.getElementById("requestCodeButton").disabled = !emailReady && !phoneReady;
+
         const result = await accountApi("/api/auth/me");
         if (result.user) {
             document.getElementById("accountForms").hidden = true;
@@ -1412,12 +1424,25 @@ async function refreshAccountState() {
         } else {
             document.getElementById("accountForms").hidden = false;
             document.getElementById("signedInPanel").hidden = true;
-            accountMessage(
-                health.registration === "requires_delivery_setup"
-                    ? (currentLanguage === "sw" ? "Kuingia kunapatikana kwa akaunti zilizopo. Usajili unasubiri kuunganishwa kwa huduma salama ya kutuma code za email/SMS." : "Sign-in is available for existing accounts. Registration is waiting for secure email/SMS code delivery setup.")
-                    : (currentLanguage === "sw" ? "Huduma ya akaunti iko tayari." : "Account service is ready."),
-                "info"
-            );
+            let statusMessage;
+            if (!emailReady && !phoneReady) {
+                statusMessage = currentLanguage === "sw"
+                    ? "Kuingia kunapatikana kwa akaunti zilizopo. Usajili mpya unasubiri usanidi wa kutuma code kwa email au SMS."
+                    : "Sign-in is available for existing accounts. New registration is paused until email or SMS code delivery is configured.";
+            } else if (emailReady && phoneReady) {
+                statusMessage = currentLanguage === "sw"
+                    ? "API ya akaunti inajibu. Uthibitisho wa usajili umewekwa kwa email na simu."
+                    : "The account API is responding. Registration code delivery is configured for email and phone.";
+            } else if (emailReady) {
+                statusMessage = currentLanguage === "sw"
+                    ? "API ya akaunti inajibu. Code za usajili zinaweza kutumwa kwa email pekee."
+                    : "The account API is responding. Registration code delivery is configured for email only.";
+            } else {
+                statusMessage = currentLanguage === "sw"
+                    ? "API ya akaunti inajibu. Code za usajili zinaweza kutumwa kwa SMS pekee."
+                    : "The account API is responding. Registration code delivery is configured for phone only.";
+            }
+            accountMessage(statusMessage, "info");
         }
     } catch (error) {
         accountServiceReady = false;
