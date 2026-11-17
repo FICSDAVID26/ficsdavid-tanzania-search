@@ -25,5 +25,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Check account API syntax
+        run: node --check functions/_shared/account-api.js
       - name: Run verification rate-limit tests
         run: node --test tests/verification-rate-limit.test.mjs
