@@ -2,70 +2,73 @@
 
 **Founder:** David Laurent Mabula
 
-FICSDavid is planned as one expandable digital platform, beginning in Tanzania and designed to grow over time. The repository contains an early front-end prototype and the first shared account API foundation.
+FICSDavid is one expandable digital platform, beginning in Tanzania and designed to grow over time. Search, the shared account, Bundle Services, Wallet and Communication Centre are designed as connected services under one account identity.
 
 ## Current implementation status
 
 | Area | Current status |
 |---|---|
-| Main website interface | Basic static HTML page |
+| Main website interface | Static HTML prototype |
 | Kiswahili and English | Basic language switch |
-| Search | Limited knowledge search plus separate image, video and news search endpoints |
-| Shared account API | Starter routes implemented; not live until deployment and configuration |
-| Email / phone verification | Code workflow implemented; secure delivery connections still required |
-| Password login and sessions | Implemented in starter API; not live until deployment and configuration |
-| Account recovery, profile changes and MFA | Not implemented |
-| PIN and transaction authorization | Not implemented |
-| FICSDavid Wallet and financial ledger | Not implemented; cannot store or transfer money |
-| Payments and mobile money | Not implemented |
-| Transaction history | Not implemented |
-| Voice calls and video calls | Not implemented |
-| Private messages and contacts | Not implemented |
+| Search | Limited search integrations |
+| Shared account API | Starter routes implemented; deployment and security verification still required |
+| Account verification and sessions | Starter workflow; delivery configuration and deployment required |
+| Bundle Services | Front-end request preview and D1 schema foundation; no live provider catalogue, price validation, payment or data delivery |
+| FICSDavid Wallet | D1 ledger schema foundation only; no active balance, deposits, transfers, withdrawals or payment processing |
+| Communication Centre | Shared Call, Video Call, Messages and Contacts interface; D1 data foundation only, no live messaging or calls |
+| Mobile money and bank integrations | Not connected |
+| Production security review | Not completed |
 
-## Account foundation
+## One shared account
 
-The account foundation is designed for one master account using either a verified email address or an international phone number. The first API routes are:
+The account foundation is intended to provide one verified identity for the platform. Bundle, Wallet and Communication services must authorize users through this shared account rather than creating separate disconnected accounts. The existing account API is an initial implementation, not a completed or independently audited authentication product.
 
-- `GET /api/health` — checks whether the account API can reach its database.
-- `POST /api/auth/request-code` — requests an email or phone verification code.
-- `POST /api/auth/verify-code` — verifies a registration code.
-- `POST /api/auth/register` — creates an account after contact verification.
-- `POST /api/auth/login` — signs in using the verified email/phone and password.
-- `GET /api/auth/me` — returns the signed-in account.
-- `POST /api/auth/logout` — revokes the current session.
+## Connected services database foundation
 
-Security measures in this starter include PBKDF2 password hashing, PBKDF2-SHA256 hashes for random verification codes, short code expiry, limited verification attempts, rate limiting, hashed session tokens, secure HttpOnly cookies, same-origin checks for state-changing requests, and basic security headers.
+Two D1 migrations are present:
 
-This is an initial foundation, not a completed or independently audited authentication product. Password reset, multi-factor authentication, account recovery, PIN controls, administrator controls and independent penetration testing remain outstanding.
+- `0001_account_foundation.sql` — users, verification codes, sessions, rate limits and security events.
+- `0002_connected_services.sql` — service preferences, Wallet accounts and immutable ledger entries, Bundle providers/products/orders, contacts, conversations, encrypted-message payload storage, call records, short-lived signalling envelopes and service audit events.
+
+The second migration creates data structures only. It does not activate any financial or communications feature. Before applying it to production, test both migrations against a non-production D1 database and review the schema and access policies.
+
+### Wallet safety requirements
+
+Wallet balances must be calculated from balanced, posted double-entry ledger transactions; never trust a balance supplied by the browser. All money-moving operations need server-side authorization, idempotency, transaction limits, reconciliation, audit trails, fraud controls, secure PIN/MFA authorization, failure handling and independent security testing. Real funds must not be accepted until legal/regulatory review and authorized payment-provider agreements are complete.
+
+### Bundle safety and provider requirements
+
+Bundle orders must use server-verified product prices and provider responses. Recipient phone numbers are intended to be encrypted before storage; raw numbers must not be written to logs. Provider credentials belong only in protected server-side secrets. Live orders require an authorized reseller/agency agreement, provider API, payment confirmation, idempotent order processing, delivery-status reconciliation and refund handling.
+
+### Communication privacy and real-time requirements
+
+Private messages are represented as encrypted payloads. The application must enforce conversation membership and authorization on every read/write. Key management and encryption must be implemented and reviewed before private messaging is enabled. Voice/video media requires WebRTC plus a suitable TURN service; the D1 signalling table is not a media server. Contacts must remain private to their owner unless explicitly shared.
 
 ## Cloud deployment setup required
 
-The API is structured as same-origin Pages Functions and uses a D1 database binding named `DB`.
+The account API uses a Cloudflare Pages Functions D1 binding named `DB`. The repository contains a database ID in `wrangler.toml`, but its existence and binding in the active Cloudflare account have not been verified here.
 
-1. Confirm that the D1 database ID already recorded in `wrangler.toml` matches a database in the Cloudflare account used for deployment. The ID is populated in the repository, but its existence and account binding have not been verified from GitHub.
-2. If no matching database exists, create `ficsdavid-main` and update `database_id` in `wrangler.toml` with its actual ID.
-3. Apply the database migration: `npx wrangler d1 migrations apply ficsdavid-main --remote`.
-4. Bind that database to the Pages project using the binding name `DB`.
-5. Configure the email and SMS delivery endpoints as HTTPS environment variables named `EMAIL_DELIVERY_URL` and `SMS_DELIVERY_URL`. Add their matching secret tokens as `EMAIL_DELIVERY_TOKEN` and `SMS_DELIVERY_TOKEN`.
-6. Each delivery endpoint must securely send the supplied one-time code to the requested recipient. Until these endpoints and secrets are configured, registration intentionally fails closed and no account is created.
-7. Deploy the Pages project, then test registration, verification, login, logout, rate limits and session expiry in a non-production test environment before opening registration to users.
+1. Confirm the D1 database exists and is the intended project database.
+2. Apply migrations in order to a non-production database first, then review and apply to production only after approval.
+3. Bind the database to Pages using the exact binding name `DB`.
+4. Configure approved email/SMS delivery endpoints and their protected server-side secrets.
+5. Deploy and test registration, verification, login, logout, authorization, rate limits and session expiry before opening account registration.
+6. Configure payment, bundle and communication providers only after partner approval and security review.
 
-Do not put delivery tokens, database credentials, passwords, PINs or private keys in source code or commit them to Git.
+The existing encrypted Cloudflare secret named `RESEND_API_KEY` must remain protected. Never place secret values, passwords, verification codes, Wallet PINs or provider keys in source code, screenshots or chat.
 
 ## Important safety information
 
-- Do not enter passwords, PINs, one-time codes, identity documents or financial details on the current public prototype.
-- Do not send money or expect the current Wallet screen to receive, store or transfer funds.
-- The account API code in GitHub is not proof that the API has been deployed or configured.
-- Search terms may be sent to external search services. Do not submit confidential or sensitive queries.
-- Search results can contain third-party content and references. Any legally required creator, source or usage-license attribution must remain visible.
+- The current prototype is not a live Wallet. Do not send money or enter a financial PIN.
+- The Bundle form is a preview only. It does not charge a customer or deliver data.
+- The Communication Centre buttons do not yet place real calls, deliver messages or synchronize contacts.
+- A GitHub commit does not prove that Cloudflare has deployed a change or that a D1 migration has been applied.
+- Do not describe any service as live until deployment, integration and end-to-end testing have been verified.
 
-## Wallet and future services
+## Founder ownership and governance
 
-Build the Wallet only after the shared account foundation is deployed and security-tested. Before any real funds are accepted, the platform needs a properly designed financial ledger, transaction authorization, reconciliation, audit logs, fraud monitoring, transaction limits, failure handling, regulatory review and authorized payment connections.
+The platform should preserve the founder's ownership and administrative control. Any future investment, shareholding, access delegation or transfer of control must be governed by explicit written agreements and role-based permissions. Investor access must not automatically grant access to customer funds, private messages, secrets or production administration.
 
-Messaging, contacts, voice and video should use the same authenticated account identity, with appropriate privacy and security controls.
+## Development notes
 
-## Development and deployment notes
-
-The repository currently includes a static front end, a Pages Functions account API starter, a D1 migration and deployment configuration. A GitHub commit does not prove that a live website or API has been deployed. Browser testing, API delivery, production security and deployment must be verified separately before describing a feature as live.
+Build the main platform first and connect services through shared identity, common security policies, consistent audit trails and documented APIs. Keep provider integrations modular so the platform can expand without fragmenting the customer experience.
