@@ -1,4 +1,6 @@
-import { reserveVerificationLimits } from "./verification-rate-limit.js";\n\nconst PASSWORD_ITERATIONS = 310000;
+import { reserveVerificationLimits } from "./verification-rate-limit.js";
+
+const PASSWORD_ITERATIONS = 310000;
 const CODE_HASH_ITERATIONS = 120000;
 const SESSION_SECONDS = 60 * 60 * 24 * 7;
 const CODE_SECONDS = 10 * 60;
