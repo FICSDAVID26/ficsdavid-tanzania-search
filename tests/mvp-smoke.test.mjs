@@ -54,6 +54,17 @@ test("Cloudflare Pages routes API requests to the account API", () => {
   ]) assert.ok(api.includes(endpoint), `Missing API endpoint: ${endpoint}`);
 });
 
+test("service preferences API is authenticated and restricts language values", () => {
+  assert.match(api, /async function servicePreferences\(request, env, user\)/);
+  assert.match(api, /SELECT preferred_language FROM service_preferences WHERE user_id=\?/);
+  assert.match(api, /language !== "sw" && language !== "en"/);
+  assert.match(api, /INSERT INTO service_preferences\(user_id, preferred_language, created_at, updated_at\)/);
+  assert.match(api, /ON CONFLICT\(user_id\) DO UPDATE SET/);
+  assert.match(api, /url\.pathname === "\/api\/account\/preferences"/);
+  assert.match(api, /Allow: "GET, PUT"/);
+  assert.match(api, /Sign in is required/);
+});
+
 test("account API keeps core authentication safeguards", () => {
   assert.match(api, /PBKDF2/);
   assert.match(api, /PASSWORD_ITERATIONS = 310000/);
