@@ -168,44 +168,66 @@ async function currentUser(request, env) {
 }
 
 async function requestCode(request, env) {
-  const body = await readJson(request);
-  const type = body.contact_type === "email" ? "email" : body.contact_type === "phone" ? "phone" : null;
-  const contact = normalizeContact(type, body.contact);
-  if (!type || !contact) return json({ error: "Enter a valid email address or international phone number." }, 400);
+  let stage = "parse_request";
+  try {
+    const body = await readJson(request);
+    const type = body.contact_type === "email" ? "email" : body.contact_type === "phone" ? "phone" : null;
+    const contact = normalizeContact(type, body.contact);
+    if (!type || !contact) return json({ error: "Enter a valid email address or international phone number." }, 400);
 
-  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
-  const contactKey = await sha256("contact:" + contact);
-  const ipKey = await sha256("ip:" + ip);
-  if (!(await rateLimit(env.DB, "code-contact:" + contactKey, 3, 3600)) ||
-      !(await rateLimit(env.DB, "code-ip:" + ipKey, 10, 3600))) {
-    return json({ error: "Too many requests. Try again later." }, 429);
+    stage = "prepare_rate_limit";
+    const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+    const contactKey = await sha256("contact:" + contact);
+    const ipKey = await sha256("ip:" + ip);
+    if (!(await rateLimit(env.DB, "code-contact:" + contactKey, 3, 3600)) ||
+        !(await rateLimit(env.DB, "code-ip:" + ipKey, 10, 3600))) {
+      return json({ error: "Too many requests. Try again later." }, 429);
+    }
+
+    stage = "check_existing_account";
+    const existing = type === "email"
+      ? await env.DB.prepare("SELECT id FROM users WHERE email=?").bind(contact).first()
+      : await env.DB.prepare("SELECT id FROM users WHERE phone_e164=?").bind(contact).first();
+    if (existing) return json({ message: "If this contact can be registered, a verification code will be sent." }, 202);
+
+    stage = "generate_verification_code";
+    const code = String(crypto.getRandomValues(new Uint32Array(1))[0] % 1000000).padStart(6, "0");
+    const saltBytes = crypto.getRandomValues(new Uint8Array(16));
+    const salt = base64url(saltBytes);
+    const codeHash = await derivePassword(code, salt, CODE_HASH_ITERATIONS);
+    const id = crypto.randomUUID();
+    const now = Math.floor(Date.now() / 1000);
+
+    stage = "save_verification_code";
+    await env.DB.prepare(
+      "INSERT INTO verification_codes(id,contact_type,contact_value,purpose,code_salt,code_hash,expires_at,created_at) VALUES(?,?,?,'register',?,?,?,?)"
+    ).bind(id, type, contact, salt, codeHash, now + CODE_SECONDS, now).run();
+
+    stage = "send_verification";
+    let delivered = false;
+    try {
+      delivered = await sendVerification(env, type, contact, code);
+    } catch (deliveryError) {
+      console.error("FICSDavid verification delivery failure", {
+        error_name: deliveryError && deliveryError.name ? String(deliveryError.name) : "Error",
+        error_message: deliveryError && deliveryError.message ? String(deliveryError.message).slice(0, 200) : "Unknown delivery error"
+      });
+    }
+    if (!delivered) {
+      stage = "cleanup_unsent_verification";
+      await env.DB.prepare("DELETE FROM verification_codes WHERE id=?").bind(id).run();
+      return json({ error: "Verification delivery is not configured. No account was created." }, 503);
+    }
+    return json({ message: "If this contact can be registered, a verification code has been sent.", verification_id: id }, 202);
+  } catch (error) {
+    console.error("FICSDavid request-code stage failure", {
+      stage,
+      error_name: error && error.name ? String(error.name) : "Error",
+      error_message: error && error.message ? String(error.message).slice(0, 200) : "Unknown server error"
+    });
+    throw error;
   }
-
-  const existing = type === "email"
-    ? await env.DB.prepare("SELECT id FROM users WHERE email=?").bind(contact).first()
-    : await env.DB.prepare("SELECT id FROM users WHERE phone_e164=?").bind(contact).first();
-  if (existing) return json({ message: "If this contact can be registered, a verification code will be sent." }, 202);
-
-  const code = String(crypto.getRandomValues(new Uint32Array(1))[0] % 1000000).padStart(6, "0");
-  const saltBytes = crypto.getRandomValues(new Uint8Array(16));
-  const salt = base64url(saltBytes);
-  const codeHash = await derivePassword(code, salt, CODE_HASH_ITERATIONS);
-  const id = crypto.randomUUID();
-  const now = Math.floor(Date.now() / 1000);
-
-  await env.DB.prepare(
-    "INSERT INTO verification_codes(id,contact_type,contact_value,purpose,code_salt,code_hash,expires_at,created_at) VALUES(?,?,?,'register',?,?,?,?)"
-  ).bind(id, type, contact, salt, codeHash, now + CODE_SECONDS, now).run();
-
-  let delivered = false;
-  try { delivered = await sendVerification(env, type, contact, code); } catch (_) {}
-  if (!delivered) {
-    await env.DB.prepare("DELETE FROM verification_codes WHERE id=?").bind(id).run();
-    return json({ error: "Verification delivery is not configured. No account was created." }, 503);
-  }
-  return json({ message: "If this contact can be registered, a verification code has been sent.", verification_id: id }, 202);
 }
-
 async function verifyCode(request, env) {
   const body = await readJson(request);
   const id = String(body.verification_id || "");
