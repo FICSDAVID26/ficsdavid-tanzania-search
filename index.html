@@ -268,6 +268,7 @@ footer {
 .provider-card{border:1px solid #e0e8f2;border-radius:10px;padding:13px;background:#fbfdff}
 .provider-card h3{font-size:15px;margin:0 0 7px}
 .provider-card p{font-size:12px;line-height:1.5;color:#526176;margin:7px 0}
+.provider-card .provider-route{font-weight:700;color:#183253}
 .provider-pill{display:inline-block;border-radius:20px;padding:5px 9px;background:#fff3d8;color:#765000;font-size:11px;font-weight:700}
 .provider-card a{font-size:12px;color:#075da4;overflow-wrap:anywhere}
 .provider-note{background:#fff8e6;border:1px solid #f1d38a;color:#704d00;border-radius:10px;padding:12px;font-size:13px;line-height:1.5;margin-top:14px}
@@ -1612,11 +1613,14 @@ async function loadProviderCentre() {
       const pill = document.createElement("span");
       pill.className = "provider-pill";
       pill.textContent = provider.enabled === true ? (labels[provider.status] || provider.status) : (currentLanguage === "sw" ? "Haijaunganishwa · " : "Not connected · ") + (labels[provider.status] || provider.status);
-      const detail = document.createElement("p");
-      detail.textContent = provider.evidence || (currentLanguage === "sw" ? "Taarifa zaidi zinahitajika." : "More information is required.");
+      const route = document.createElement("p");
+      route.className = "provider-route";
+      route.textContent = (currentLanguage === "sw" ? "Njia inayochunguzwa: " : "Proposed route: ") + (provider.engagementModel || (currentLanguage === "sw" ? "Itathibitishwa" : "To be assessed"));
       const capability = document.createElement("p");
       capability.textContent = (currentLanguage === "sw" ? "Huduma: " : "Services: ") + (provider.capabilities || []).join(", ").replaceAll("_"," ");
-      card.append(heading,pill,capability,detail);
+      const detail = document.createElement("p");
+      detail.textContent = provider.evidence || (currentLanguage === "sw" ? "Taarifa zaidi zinahitajika." : "More information is required.");
+      card.append(heading,pill,route,capability,detail);
       if (provider.website) {
         const link = document.createElement("a");
         link.href = provider.website;
