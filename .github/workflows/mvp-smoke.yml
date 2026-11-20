@@ -2,7 +2,7 @@ name: FICSDavid MVP smoke tests
 
 on:
   push:
-    branches: [main]
+    branches: [main, feat/provider-integration-foundation]
   pull_request:
     branches: [main]
 
