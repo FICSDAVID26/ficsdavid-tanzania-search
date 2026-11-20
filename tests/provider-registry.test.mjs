@@ -4,7 +4,7 @@ import {
   getProviderReadiness,
   listProviderDefinitions,
   listProviderReadiness
-} from "../functions/_shared/provider-registry.js";
+} from "../functions/_shared/provider-registry.mjs";
 
 test("provider catalogue is metadata-only and starts disabled", () => {
   const providers = listProviderReadiness({});
