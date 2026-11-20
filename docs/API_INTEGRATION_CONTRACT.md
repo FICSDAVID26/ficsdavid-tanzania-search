@@ -12,29 +12,30 @@ For each reviewed provider, Cloudflare server-side environment variables follow:
 
 Provider IDs currently prepared: `MALIPOPAY`, `SELCOM`, `BEEM`, `DARSMS`, `BUNDLE_AGGREGATOR`, `SEARCH_MONETIZATION`, `AI_PROVIDER`, `WEBRTC_TURN`.
 
-The readiness registry checks configuration shape only. It does not make network calls, validate a credential with the provider, or imply a contract. Its public-safe result deliberately omits the base URL and credential.
+The readiness registry checks configuration shape only. It does not make network calls, validate a credential with the provider, or imply a contract. Its public-safe result deliberately omits the base URL and credential. Do not enable a provider merely because these variables exist.
 
 ## First sandbox candidate: Selcom Business API
 
-**Decision:** use Selcom as the first provider for documentation and sandbox-access evaluation only. This is not a production selection, provider agreement, or approval to process customer funds.
+**Decision:** evaluate Selcom first for documentation and sandbox access only. This is not a production selection, provider agreement, or approval to process customer funds.
 
-The official developer portal currently documents:
+The official Selcom Business API portal documents:
 
 - Sandbox base URL: `https://sandbox.selcom.business`.
 - Production base URL: `https://api.selcom.business/v1` — do not configure or call production at this stage.
 - Credentials are described as available through Selcom Business → My Account → API Credentials.
-- The transaction API documents account lookup, transaction processing and transaction status operations. A transaction reference (`transId`) must be unique and is used for idempotency/status tracking.
-- The callback documentation says callbacks are sent for successful transactions and carry `reference_id` and `status`; do not treat the callback as a complete event stream for failed or pending transactions. Status lookup/reconciliation is still required.
+- The detailed Authorization section specifies RSA-SHA256 signing using an API key and RSA private key. The portal overview also describes HMAC-based digest signing. Selcom must confirm in writing which signing mode and credential bundle applies to the exact Business API account/product FICSDavid would be onboarded to. Do not guess or mix the two schemes.
+- The documented protected requests include `api-key`, UTC ISO-8601 `timestamp`, `digest`, `signed-fields`, and an `Origin` header matching a domain registered to the API credential. The portal also documents IP-whitelisting errors and timestamp freshness checks.
+- The transaction API describes account lookup, transaction processing and status queries. `transId` must be unique and is used for idempotency/status tracking.
+- The documented transaction-process operation is a fund transfer from the debit account associated with the API credentials to a recipient bank/wallet account. This is not, by itself, proof of a consumer checkout/collection product suitable for FICSDavid. Confirm the intended use case and account funding/settlement model with Selcom before designing a user-facing payment flow.
+- The callback documentation for this Business API says callbacks are sent for successful transactions and carry `reference_id` and `status`. Do not treat callbacks as a complete event stream for failed or pending transactions; status lookup and reconciliation remain necessary.
 
-**Important documentation issue to resolve with Selcom before coding authentication:** the portal overview describes an HMAC-based digest, while its detailed Authorization section describes RSA-SHA256 signing with an API key and RSA private key. These are materially different schemes. Do not guess which applies to the intended account/product. Obtain written confirmation and the exact sandbox credential format from Selcom first.
-
-Any private signing key must remain server-side and must never be placed in browser/mobile code, Git, logs, or client-visible API responses. No sandbox credentials have been received or tested yet.
+Any RSA private key or HMAC secret must remain server-side and must never be placed in browser/mobile code, Git, logs, or client-visible API responses. The current generic registry only models an API key; before implementing this provider, review the credential model and add any required private-key/secret handling securely. No sandbox credentials have been received or tested yet.
 
 Official documentation: https://developer.selcom.business/
 
 ## Adapter contract to implement per provider
 
-After receiving official documentation and sandbox access, implement only the supported operations:
+After receiving written confirmation of the exact API product, official authentication instructions, sandbox credentials and written authorization, implement only the supported operations:
 
 - `healthCheck()`
 - `getCapabilities()`
@@ -45,14 +46,14 @@ After receiving official documentation and sandbox access, implement only the su
 - `refundOrReverse(reference, reason)`, only where contractually supported
 - `reconcile(period)`
 
-Provider-specific adapters must validate request and response schemas, use server-side timeouts, avoid logging personal or secret data, map provider statuses explicitly, and use idempotency keys for all retryable order creation. Webhooks must verify signatures, timestamps and replay protection before changing an order.
+Provider-specific adapters must validate request and response schemas, use server-side timeouts, avoid logging personal or secret data, map provider statuses explicitly, and use idempotency keys for all retryable order creation. Webhooks must verify signatures, timestamps and replay protection before changing an order. The exact webhook authentication scheme must be confirmed for the selected API product; do not assume a signature scheme from a different Selcom product.
 
 ## API activation gates
 
 No public route should call a provider until all applicable gates are complete:
 
-1. Written provider authorization, commercial terms and permitted reseller/partnership scope.
-2. Sandbox credentials and official API/webhook documentation.
+1. Written provider authorization, commercial terms and permitted partnership/reseller scope.
+2. Confirmation of the exact API product, sandbox credentials and official API/webhook documentation.
 3. Data protection, sector regulator and business approvals for the exact service model.
 4. Unit, failure, duplicate-event, timeout, reconciliation and security tests.
 5. Explicit operator-controlled enablement and successful end-to-end sandbox sign-off.
