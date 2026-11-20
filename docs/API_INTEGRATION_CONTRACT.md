@@ -14,6 +14,24 @@ Provider IDs currently prepared: `MALIPOPAY`, `SELCOM`, `BEEM`, `DARSMS`, `BUNDL
 
 The readiness registry checks configuration shape only. It does not make network calls, validate a credential with the provider, or imply a contract. Its public-safe result deliberately omits the base URL and credential.
 
+## First sandbox candidate: Selcom Business API
+
+**Decision:** use Selcom as the first provider for documentation and sandbox-access evaluation only. This is not a production selection, provider agreement, or approval to process customer funds.
+
+The official developer portal currently documents:
+
+- Sandbox base URL: `https://sandbox.selcom.business`.
+- Production base URL: `https://api.selcom.business/v1` — do not configure or call production at this stage.
+- Credentials are described as available through Selcom Business → My Account → API Credentials.
+- The transaction API documents account lookup, transaction processing and transaction status operations. A transaction reference (`transId`) must be unique and is used for idempotency/status tracking.
+- The callback documentation says callbacks are sent for successful transactions and carry `reference_id` and `status`; do not treat the callback as a complete event stream for failed or pending transactions. Status lookup/reconciliation is still required.
+
+**Important documentation issue to resolve with Selcom before coding authentication:** the portal overview describes an HMAC-based digest, while its detailed Authorization section describes RSA-SHA256 signing with an API key and RSA private key. These are materially different schemes. Do not guess which applies to the intended account/product. Obtain written confirmation and the exact sandbox credential format from Selcom first.
+
+Any private signing key must remain server-side and must never be placed in browser/mobile code, Git, logs, or client-visible API responses. No sandbox credentials have been received or tested yet.
+
+Official documentation: https://developer.selcom.business/
+
 ## Adapter contract to implement per provider
 
 After receiving official documentation and sandbox access, implement only the supported operations:
@@ -45,4 +63,4 @@ Payments, wallet custody, airtime, bundles, SMS and telecom services remain inac
 
 The shared `provider-adapter-contract.mjs` module provides a common interface guard and a disabled adapter factory. It is deliberately non-networking: all operations return `PROVIDER_NOT_CONFIGURED`, and the adapter cannot be enabled by mutating its object. This lets FICSDavid wire and test service orchestration before any vendor API credentials or commercial approvals exist.
 
-For the first live adapter, select a provider only after its official sandbox documentation, credential method, webhook signature specification, order lifecycle, refund rules and written authorization are obtained. Do not replace the disabled scaffold with guessed endpoints or undocumented payloads.
+Do not replace the disabled scaffold with guessed endpoints or undocumented payloads.
