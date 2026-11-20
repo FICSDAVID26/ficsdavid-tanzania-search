@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "notice": "Research shortlist only. No provider is contracted, approved, or integrated. All providers are disabled until due diligence, contract, security review and testing are complete.",
+  "notice": "Research shortlist only. No provider is contracted, approved, or integrated. Proposed engagement models are not proof of authorization. All providers remain disabled until due diligence, contract, security review and testing are complete.",
   "startingBudgetTZS": 0,
   "lifecycle": [
     "research",
@@ -28,7 +28,8 @@
       ],
       "status": "research",
       "enabled": false,
-      "evidence": "Public developer documentation; commercial onboarding, licensing scope, pricing and merchant approval must be confirmed directly."
+      "evidence": "Public developer documentation; commercial onboarding, licensing scope, pricing and merchant approval must be confirmed directly.",
+      "engagementModel": "Partnership: authorized payment provider; confirm FICSDavid's permitted role"
     },
     {
       "id": "selcom",
@@ -45,7 +46,8 @@
       ],
       "status": "research",
       "enabled": false,
-      "evidence": "Public developer documentation; exact product access and commercial terms require direct onboarding."
+      "evidence": "Public developer documentation; exact product access and commercial terms require direct onboarding.",
+      "engagementModel": "Partnership: confirm platform/merchant scope"
     },
     {
       "id": "beem",
@@ -66,7 +68,8 @@
       ],
       "status": "research",
       "enabled": false,
-      "evidence": "Public API product pages; Tanzania coverage, reseller eligibility and current pricing require written confirmation."
+      "evidence": "Public API product pages; Tanzania coverage, reseller eligibility and current pricing require written confirmation.",
+      "engagementModel": "Partnership and authorized reseller options to verify"
     },
     {
       "id": "darsms",
@@ -84,7 +87,8 @@
       ],
       "status": "research",
       "enabled": false,
-      "evidence": "Public Tanzania product and API information; current price, sender ID approval and commercial terms must be confirmed."
+      "evidence": "Public Tanzania product and API information; current price, sender ID approval and commercial terms must be confirmed.",
+      "engagementModel": "Partnership and authorized reseller options to verify"
     },
     {
       "id": "bundle-aggregator-discovery",
@@ -99,7 +103,8 @@
       ],
       "status": "research",
       "enabled": false,
-      "evidence": "No reseller has been selected. Require proof of operator authorization, product catalogue, wholesale price, API, refunds and support."
+      "evidence": "No reseller has been selected. Require proof of operator authorization, product catalogue, wholesale price, API, refunds and support.",
+      "engagementModel": "Authorized reseller/agent; written resale authority required"
     },
     {
       "id": "search-monetization-discovery",
@@ -116,7 +121,8 @@
       ],
       "status": "research",
       "enabled": false,
-      "evidence": "No partner selected. Review publisher eligibility, privacy, content rights, disclosure and payout thresholds."
+      "evidence": "No partner selected. Review publisher eligibility, privacy, content rights, disclosure and payout thresholds.",
+      "engagementModel": "Publisher or affiliate partnership"
     },
     {
       "id": "ai-provider-discovery",
@@ -131,7 +137,8 @@
       ],
       "status": "research",
       "enabled": false,
-      "evidence": "No provider selected. Compare data-use terms, safety, pricing, limits and cost controls."
+      "evidence": "No provider selected. Compare data-use terms, safety, pricing, limits and cost controls.",
+      "engagementModel": "Partnership; free sandbox only until funded"
     },
     {
       "id": "webrtc-turn-discovery",
@@ -147,7 +154,8 @@
       ],
       "status": "research",
       "enabled": false,
-      "evidence": "No provider selected. Evaluate security, latency, data processing, bandwidth cost and abuse prevention."
+      "evidence": "No provider selected. Evaluate security, latency, data processing, bandwidth cost and abuse prevention.",
+      "engagementModel": "Technology partnership; regulatory review first"
     },
     {
       "id": "network-oem-discovery",
@@ -164,7 +172,22 @@
       ],
       "status": "research",
       "enabled": false,
-      "evidence": "No manufacturer selected. Require samples, band compatibility, TCRA type approval evidence, warranty and landed-cost quotation."
+      "evidence": "No manufacturer selected. Require samples, band compatibility, TCRA type approval evidence, warranty and landed-cost quotation.",
+      "engagementModel": "OEM partnership and authorized distribution"
     }
-  ]
+  ],
+  "strategy": {
+    "name": "Partnership + Authorized Reseller/Agent",
+    "startingBudgetTZS": 0,
+    "rule": "Select route per service. A partner licence does not automatically authorize FICSDavid. Obtain written provider authority and regulator classification before regulated live activity.",
+    "liveGate": [
+      "written provider agreement or affiliate authorization",
+      "business and tax requirements completed as applicable",
+      "sector regulator approval or classification where required",
+      "data protection requirements completed",
+      "security and end-to-end tests passed",
+      "refund, complaints, reconciliation and support process ready"
+    ],
+    "revenue": "Only settled, contractually earned FICSDavid commission/revenue share is company revenue. Customer principal, provider float, taxes, fees and refunds are not founder income."
+  }
 }
