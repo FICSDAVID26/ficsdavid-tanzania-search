@@ -456,6 +456,12 @@ export default {
       if (error && error.message === "JSON_REQUIRED") return json({ error: "Send JSON content." }, 415);
       if (error && error.message === "BODY_TOO_LARGE") return json({ error: "Request too large." }, 413);
       if (error && error.message === "INVALID_JSON") return json({ error: "Invalid JSON." }, 400);
+      // Log only server-side diagnostic metadata; never log request bodies, codes, passwords, or contacts.
+      console.error("FICSDavid auth API failure", {
+        path: url.pathname,
+        error_name: error && error.name ? String(error.name) : "Error",
+        error_message: error && error.message ? String(error.message).slice(0, 240) : "Unknown server error"
+      });
       return json({ error: "The request could not be completed." }, 500);
     }
   }
