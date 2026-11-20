@@ -256,6 +256,25 @@ footer {
 .communication-contacts .contact-action { display: inline-block; color: #075da4; border: 1px solid #b9d7ef; border-radius: 8px; padding: 8px 10px; text-decoration: none; font-size: 13px; }
 
 #communicationContactsStatus { margin: 8px 0; }
+
+/* Provider Integration Centre */
+.provider-centre{background:#fff;border:1px solid #dce6f2;border-radius:14px;padding:18px;margin:16px 0;box-shadow:0 2px 8px #0001}
+.provider-centre h2{margin-top:0}
+.provider-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:9px;margin:14px 0}
+.provider-stat{background:#f4f8fd;border:1px solid #e0e9f4;border-radius:10px;padding:12px}
+.provider-stat strong{display:block;font-size:23px;color:#102447}
+.provider-stat span{font-size:12px;color:#526176}
+.provider-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:12px}
+.provider-card{border:1px solid #e0e8f2;border-radius:10px;padding:13px;background:#fbfdff}
+.provider-card h3{font-size:15px;margin:0 0 7px}
+.provider-card p{font-size:12px;line-height:1.5;color:#526176;margin:7px 0}
+.provider-pill{display:inline-block;border-radius:20px;padding:5px 9px;background:#fff3d8;color:#765000;font-size:11px;font-weight:700}
+.provider-card a{font-size:12px;color:#075da4;overflow-wrap:anywhere}
+.provider-note{background:#fff8e6;border:1px solid #f1d38a;color:#704d00;border-radius:10px;padding:12px;font-size:13px;line-height:1.5;margin-top:14px}
+.provider-integrations{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin-top:10px}
+.provider-integration{padding:10px;border:1px solid #e0e8f2;border-radius:9px;font-size:12px}
+.provider-integration strong{display:block;margin-bottom:4px}
+
 </style>
 </head>
 
@@ -275,6 +294,7 @@ footer {
     <button type="button" onclick="setLanguage('sw')">
         Kiswahili
     </button>
+    <button type="button" onclick="document.getElementById('providerCentre').scrollIntoView({behavior:'smooth'})" data-en="Providers" data-sw="Watoa huduma">Providers</button>
 </nav>
 
 <main class="container">
@@ -454,6 +474,29 @@ footer {
         <button class="primary" id="supportSubmitButton" type="submit" data-en="Send report" data-sw="Tuma ripoti">Send report</button>
         <p id="supportTicketStatus" class="small" role="status" aria-live="polite"></p>
     </form>
+</section>
+
+
+<section class="provider-centre" id="providerCentre" aria-labelledby="providerCentreTitle">
+  <h2 id="providerCentreTitle" data-en="Provider Integration Centre" data-sw="Kituo cha Miunganisho ya Watoa Huduma">Provider Integration Centre</h2>
+  <p class="small" data-en="A transparent view of external providers and the current integration stage." data-sw="Muonekano wa wazi wa watoa huduma wa nje na hatua ya sasa ya kuwaunganisha.">A transparent view of external providers and the current integration stage.</p>
+  <div class="provider-summary" aria-live="polite">
+    <div class="provider-stat"><strong id="providerConnected">0</strong><span data-en="Connected & verified" data-sw="Imeunganishwa na kuthibitishwa">Connected &amp; verified</span></div>
+    <div class="provider-stat"><strong id="providerTesting">0</strong><span data-en="In testing" data-sw="Inafanyiwa majaribio">In testing</span></div>
+    <div class="provider-stat"><strong id="providerResearch">—</strong><span data-en="Under research" data-sw="Inafanyiwa utafiti">Under research</span></div>
+    <div class="provider-stat"><strong>TSh 0</strong><span data-en="Starting budget" data-sw="Mtaji wa kuanzia">Starting budget</span></div>
+  </div>
+  <h3 data-en="External providers" data-sw="Watoa huduma wa nje">External providers</h3>
+  <div id="providerList" class="provider-list" aria-live="polite"><p class="small">Loading provider register…</p></div>
+  <h3 data-en="Platform integrations in the codebase" data-sw="Miunganisho iliyopo kwenye mfumo">Platform integrations in the codebase</h3>
+  <div class="provider-integrations">
+    <div class="provider-integration"><strong>Cloudflare Pages</strong><span data-en="Website hosting — configured" data-sw="Ukaribishaji wa tovuti — umewekwa">Website hosting — configured</span></div>
+    <div class="provider-integration"><strong>Cloudflare D1</strong><span data-en="Database — configured; production checks still required" data-sw="Database — imewekwa; ukaguzi wa production bado unahitajika">Database — configured; production checks still required</span></div>
+    <div class="provider-integration"><strong>Wikipedia / Wikimedia</strong><span data-en="Search content sources — code integration; live tests required" data-sw="Vyanzo vya utafutaji — vimeunganishwa kwenye code; majaribio ya moja kwa moja yanahitajika">Search content sources — code integration; live tests required</span></div>
+    <div class="provider-integration"><strong>Openverse</strong><span data-en="Image search source — code integration; live tests required" data-sw="Chanzo cha picha — kipo kwenye code; majaribio yanahitajika">Image search source — code integration; live tests required</span></div>
+    <div class="provider-integration"><strong>GDELT</strong><span data-en="News source — code integration; live tests required" data-sw="Chanzo cha habari — kipo kwenye code; majaribio yanahitajika">News source — code integration; live tests required</span></div>
+  </div>
+  <div class="provider-note" id="providerNotice" data-en="Important: A provider listed below is a research candidate, not a connected partner. No payment, wallet, SMS, OTP, bundle delivery, AI API or voice/video provider is currently approved or live. Do not accept customer payments until the relevant legal, provider and security approvals are complete." data-sw="Muhimu: Mtoa huduma aliyeorodheshwa hapa ni mgombea wa utafiti, si mshirika aliyeunganishwa. Hakuna huduma ya malipo, wallet, SMS, OTP, vifurushi, AI API au sauti/video iliyoidhinishwa au kuanza kazi. Msipokee malipo ya wateja kabla ya kukamilisha vibali vya kisheria, mtoa huduma na usalama.">Important: A provider listed below is a research candidate, not a connected partner. No payment, wallet, SMS, OTP, bundle delivery, AI API or voice/video provider is currently approved or live. Do not accept customer payments until the relevant legal, provider and security approvals are complete.</div>
 </section>
 
 <section class="panel" id="communicationCentre" aria-labelledby="communicationTitle">
@@ -1535,11 +1578,66 @@ async function accountLogout() {
 refreshAccountState();
 
 
+
+/* Provider Integration Centre: display the repository registry as the single source of truth. */
+async function loadProviderCentre() {
+  const list = document.getElementById("providerList");
+  const labels = {
+    research: currentLanguage === "sw" ? "Utafiti tu" : "Research only",
+    contacted: currentLanguage === "sw" ? "Amefikiwa" : "Contacted",
+    information_received: currentLanguage === "sw" ? "Taarifa zimepokelewa" : "Information received",
+    due_diligence: currentLanguage === "sw" ? "Ukaguzi wa kina" : "Due diligence",
+    sandbox: currentLanguage === "sw" ? "Mazingira ya majaribio" : "Sandbox",
+    contract_pending: currentLanguage === "sw" ? "Mkataba unasubiri" : "Contract pending",
+    approved: currentLanguage === "sw" ? "Ameidhinishwa" : "Approved",
+    integrated: currentLanguage === "sw" ? "Ameunganishwa" : "Integrated",
+    tested: currentLanguage === "sw" ? "Amejaribiwa" : "Tested",
+    live: currentLanguage === "sw" ? "Anafanya kazi" : "Live"
+  };
+  try {
+    const response = await fetch("/docs/provider-registry.json", {cache:"no-store"});
+    if (!response.ok) throw new Error("Registry unavailable");
+    const registry = await response.json();
+    const providers = Array.isArray(registry.providers) ? registry.providers : [];
+    const count = status => providers.filter(p => p.status === status && p.enabled === true).length;
+    document.getElementById("providerConnected").textContent = providers.filter(p => p.enabled === true && ["approved","integrated","tested","live"].includes(p.status)).length;
+    document.getElementById("providerTesting").textContent = providers.filter(p => ["sandbox","integrated","tested"].includes(p.status) && p.enabled === true).length;
+    document.getElementById("providerResearch").textContent = providers.filter(p => p.status === "research" || p.enabled !== true).length;
+    list.replaceChildren();
+    providers.forEach(provider => {
+      const card = document.createElement("article");
+      card.className = "provider-card";
+      const heading = document.createElement("h3");
+      heading.textContent = provider.name || provider.id;
+      const pill = document.createElement("span");
+      pill.className = "provider-pill";
+      pill.textContent = provider.enabled === true ? (labels[provider.status] || provider.status) : (currentLanguage === "sw" ? "Haijaunganishwa · " : "Not connected · ") + (labels[provider.status] || provider.status);
+      const detail = document.createElement("p");
+      detail.textContent = provider.evidence || (currentLanguage === "sw" ? "Taarifa zaidi zinahitajika." : "More information is required.");
+      const capability = document.createElement("p");
+      capability.textContent = (currentLanguage === "sw" ? "Huduma: " : "Services: ") + (provider.capabilities || []).join(", ").replaceAll("_"," ");
+      card.append(heading,pill,capability,detail);
+      if (provider.website) {
+        const link = document.createElement("a");
+        link.href = provider.website;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = currentLanguage === "sw" ? "Fungua tovuti / nyaraka" : "Open website / documentation";
+        card.append(link);
+      }
+      list.append(card);
+    });
+  } catch (error) {
+    list.textContent = currentLanguage === "sw" ? "Orodha ya watoa huduma haikupatikana. Jaribu ku-refresh ukurasa." : "Provider register could not be loaded. Please refresh the page.";
+  }
+}
+
 /* LANGUAGE FUNCTION */
 
 function setLanguage(language) {
 
     currentLanguage = language;
+    if (typeof loadProviderCentre === "function") loadProviderCentre();
 
     const isSwahili = language === "sw";
 
