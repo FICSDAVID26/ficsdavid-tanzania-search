@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 1,
+  "notice": "Research shortlist only. No provider is contracted, approved, or integrated. All providers are disabled until due diligence, contract, security review and testing are complete.",
+  "startingBudgetTZS": 0,
+  "lifecycle": [
+    "research",
+    "contacted",
+    "information_received",
+    "due_diligence",
+    "sandbox",
+    "contract_pending",
+    "approved",
+    "integrated",
+    "tested",
+    "live"
+  ],
+  "providers": [
+    {
+      "id": "malipopay",
+      "name": "MALIPOPAY",
+      "website": "https://developers.malipopay.co.tz/",
+      "capabilities": [
+        "payment_collections",
+        "payment_disbursements"
+      ],
+      "markets": [
+        "TZ"
+      ],
+      "status": "research",
+      "enabled": false,
+      "evidence": "Public developer documentation; commercial onboarding, licensing scope, pricing and merchant approval must be confirmed directly."
+    },
+    {
+      "id": "selcom",
+      "name": "Selcom",
+      "website": "https://developers.selcommobile.com/",
+      "capabilities": [
+        "payments",
+        "utility_payments",
+        "wallet_cashin",
+        "payouts"
+      ],
+      "markets": [
+        "TZ"
+      ],
+      "status": "research",
+      "enabled": false,
+      "evidence": "Public developer documentation; exact product access and commercial terms require direct onboarding."
+    },
+    {
+      "id": "beem",
+      "name": "Beem Africa",
+      "website": "https://beem.africa/beem-api/",
+      "capabilities": [
+        "sms",
+        "two_way_sms",
+        "ussd",
+        "airtime",
+        "otp",
+        "whatsapp",
+        "mobile_payments"
+      ],
+      "markets": [
+        "TZ",
+        "Africa"
+      ],
+      "status": "research",
+      "enabled": false,
+      "evidence": "Public API product pages; Tanzania coverage, reseller eligibility and current pricing require written confirmation."
+    },
+    {
+      "id": "darsms",
+      "name": "DARSMS",
+      "website": "https://www.darsms.co.tz/",
+      "capabilities": [
+        "sms",
+        "otp",
+        "sender_ids",
+        "delivery_reports",
+        "whatsapp_business"
+      ],
+      "markets": [
+        "TZ"
+      ],
+      "status": "research",
+      "enabled": false,
+      "evidence": "Public Tanzania product and API information; current price, sender ID approval and commercial terms must be confirmed."
+    },
+    {
+      "id": "bundle-aggregator-discovery",
+      "name": "Tanzania bundle aggregator — discovery",
+      "website": null,
+      "capabilities": [
+        "data_bundles",
+        "airtime"
+      ],
+      "markets": [
+        "TZ"
+      ],
+      "status": "research",
+      "enabled": false,
+      "evidence": "No reseller has been selected. Require proof of operator authorization, product catalogue, wholesale price, API, refunds and support."
+    },
+    {
+      "id": "search-monetization-discovery",
+      "name": "Search monetization partner — discovery",
+      "website": null,
+      "capabilities": [
+        "search_ads",
+        "affiliate_referrals"
+      ],
+      "markets": [
+        "TZ",
+        "Africa",
+        "Global"
+      ],
+      "status": "research",
+      "enabled": false,
+      "evidence": "No partner selected. Review publisher eligibility, privacy, content rights, disclosure and payout thresholds."
+    },
+    {
+      "id": "ai-provider-discovery",
+      "name": "AI API provider — discovery",
+      "website": null,
+      "capabilities": [
+        "ai_assistant",
+        "content_tools"
+      ],
+      "markets": [
+        "Global"
+      ],
+      "status": "research",
+      "enabled": false,
+      "evidence": "No provider selected. Compare data-use terms, safety, pricing, limits and cost controls."
+    },
+    {
+      "id": "webrtc-turn-discovery",
+      "name": "WebRTC/TURN provider — discovery",
+      "website": null,
+      "capabilities": [
+        "voice_calls",
+        "video_calls",
+        "realtime_signaling"
+      ],
+      "markets": [
+        "Global"
+      ],
+      "status": "research",
+      "enabled": false,
+      "evidence": "No provider selected. Evaluate security, latency, data processing, bandwidth cost and abuse prevention."
+    },
+    {
+      "id": "network-oem-discovery",
+      "name": "FICSDavid Networks OEM/ODM — discovery",
+      "website": null,
+      "capabilities": [
+        "mifi",
+        "lte_cpe",
+        "wifi_router",
+        "network_equipment"
+      ],
+      "markets": [
+        "TZ"
+      ],
+      "status": "research",
+      "enabled": false,
+      "evidence": "No manufacturer selected. Require samples, band compatibility, TCRA type approval evidence, warranty and landed-cost quotation."
+    }
+  ]
+}
