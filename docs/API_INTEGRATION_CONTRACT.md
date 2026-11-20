@@ -40,3 +40,9 @@ No public route should call a provider until all applicable gates are complete:
 5. Explicit operator-controlled enablement and successful end-to-end sandbox sign-off.
 
 Payments, wallet custody, airtime, bundles, SMS and telecom services remain inactive by default. Never use customer funds as platform revenue. Preserve the existing `RESEND_API_KEY` secret unchanged.
+
+## Disabled adapter scaffold
+
+The shared `provider-adapter-contract.mjs` module provides a common interface guard and a disabled adapter factory. It is deliberately non-networking: all operations return `PROVIDER_NOT_CONFIGURED`, and the adapter cannot be enabled by mutating its object. This lets FICSDavid wire and test service orchestration before any vendor API credentials or commercial approvals exist.
+
+For the first live adapter, select a provider only after its official sandbox documentation, credential method, webhook signature specification, order lifecycle, refund rules and written authorization are obtained. Do not replace the disabled scaffold with guessed endpoints or undocumented payloads.
