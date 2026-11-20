@@ -97,11 +97,42 @@ async function rateLimit(db, key, limit, windowSeconds) {
     `INSERT INTO rate_limits(rate_key, window_start, request_count)
      VALUES (?, ?, 1)
      ON CONFLICT(rate_key) DO UPDATE SET
-       request_count = CASE WHEN window_start <= ? THEN 1 ELSE request_count + 1 END,
-       window_start = CASE WHEN window_start <= ? THEN excluded.window_start ELSE window_start END
-     RETURNING request_count`
-  ).bind(key, now, now - windowSeconds, now - windowSeconds).first();
-  return !!row && row.request_count <= limit;
+       request_count = CASE
+         WHEN rate_limits.window_start <= ? THEN 1
+         WHEN rate_limits.request_count <= ? THEN rate_limits.request_count + 1
+         ELSE rate_limits.request_count
+       END,
+       window_start = CASE
+         WHEN rate_limits.window_start <= ? THEN excluded.window_start
+         ELSE rate_limits.window_start
+       END
+     RETURNING request_count, window_start`
+  ).bind(key, now, now - windowSeconds, limit, now - windowSeconds).first();
+
+  if (!row) return { allowed: false, retryAfterSeconds: windowSeconds };
+  const allowed = row.request_count <= limit;
+  const retryAfterSeconds = allowed
+    ? 0
+    : Math.max(1, row.window_start + windowSeconds - now);
+  return { allowed, retryAfterSeconds };
+}
+
+function rateLimitError(scope, retryAfterSeconds) {
+  const minutes = Math.max(1, Math.ceil(retryAfterSeconds / 60));
+  const message = scope === "email"
+    ? `Too many requests for this email. Try again in about ${minutes} minute(s).`
+    : `Too many requests from this network. Try again in about ${minutes} minute(s).`;
+  return json({
+    error: message,
+    limit_scope: scope,
+    retry_after_seconds: retryAfterSeconds
+  }, 429, { "Retry-After": String(retryAfterSeconds) });
+}
+
+async function releaseRateLimit(db, key) {
+  await db.prepare(
+    "UPDATE rate_limits SET request_count=MAX(0, request_count-1) WHERE rate_key=?"
+  ).bind(key).run();
 }
 
 async function audit(db, userId, eventType, detail = {}) {
@@ -173,18 +204,22 @@ async function requestCode(request, env) {
   const contact = normalizeContact(type, body.contact);
   if (!type || !contact) return json({ error: "Enter a valid email address or international phone number." }, 400);
 
-  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
-  const contactKey = await sha256("contact:" + contact);
-  const ipKey = await sha256("ip:" + ip);
-  if (!(await rateLimit(env.DB, "code-contact:" + contactKey, 3, 3600)) ||
-      !(await rateLimit(env.DB, "code-ip:" + ipKey, 10, 3600))) {
-    return json({ error: "Too many requests. Try again later." }, 429);
-  }
-
   const existing = type === "email"
     ? await env.DB.prepare("SELECT id FROM users WHERE email=?").bind(contact).first()
     : await env.DB.prepare("SELECT id FROM users WHERE phone_e164=?").bind(contact).first();
   if (existing) return json({ message: "If this contact can be registered, a verification code will be sent." }, 202);
+
+  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+  const contactKey = await sha256("contact:" + contact);
+  const ipKey = await sha256("ip:" + ip);
+  const contactLimitKey = "code-contact:" + contactKey;
+  const ipLimitKey = "code-ip:" + ipKey;
+  const [contactLimit, ipLimit] = await Promise.all([
+    rateLimit(env.DB, contactLimitKey, 3, 3600),
+    rateLimit(env.DB, ipLimitKey, 10, 3600)
+  ]);
+  if (!contactLimit.allowed) return rateLimitError("email", contactLimit.retryAfterSeconds);
+  if (!ipLimit.allowed) return rateLimitError("network", ipLimit.retryAfterSeconds);
 
   const code = String(crypto.getRandomValues(new Uint32Array(1))[0] % 1000000).padStart(6, "0");
   const saltBytes = crypto.getRandomValues(new Uint8Array(16));
@@ -201,7 +236,12 @@ async function requestCode(request, env) {
   try { delivered = await sendVerification(env, type, contact, code); } catch (_) {}
   if (!delivered) {
     await env.DB.prepare("DELETE FROM verification_codes WHERE id=?").bind(id).run();
-    return json({ error: "Verification delivery is not configured. No account was created." }, 503);
+    // A failed delivery should not consume the user's verification request allowance.
+    await Promise.all([
+      releaseRateLimit(env.DB, contactLimitKey),
+      releaseRateLimit(env.DB, ipLimitKey)
+    ]);
+    return json({ error: "Verification email could not be delivered. No account was created. Please check the email service and try again later." }, 503);
   }
   return json({ message: "If this contact can be registered, a verification code has been sent.", verification_id: id }, 202);
 }
@@ -216,8 +256,8 @@ async function verifyCode(request, env) {
   const ip = request.headers.get("CF-Connecting-IP") || "unknown";
   const ipHash = await sha256("verify-ip:" + ip);
   const idHash = await sha256("verify-id:" + id);
-  if (!(await rateLimit(env.DB, "verify-ip:" + ipHash, 15, 600)) ||
-      !(await rateLimit(env.DB, "verify-id:" + idHash, 5, 600))) {
+  if (!(await rateLimit(env.DB, "verify-ip:" + ipHash, 15, 600)).allowed ||
+      !(await rateLimit(env.DB, "verify-id:" + idHash, 5, 600)).allowed) {
     return json({ error: "Too many verification attempts. Request a new code later." }, 429);
   }
   const now = Math.floor(Date.now() / 1000);
@@ -249,8 +289,8 @@ async function register(request, env) {
   const ip = request.headers.get("CF-Connecting-IP") || "unknown";
   const ipHash = await sha256("register-ip:" + ip);
   const idHash = await sha256("register-id:" + id);
-  if (!(await rateLimit(env.DB, "register-ip:" + ipHash, 10, 900)) ||
-      !(await rateLimit(env.DB, "register-id:" + idHash, 3, 900))) {
+  if (!(await rateLimit(env.DB, "register-ip:" + ipHash, 10, 900)).allowed ||
+      !(await rateLimit(env.DB, "register-id:" + idHash, 3, 900)).allowed) {
     return json({ error: "Too many registration attempts. Try again later." }, 429);
   }
 
@@ -302,8 +342,8 @@ async function login(request, env) {
   const ip = request.headers.get("CF-Connecting-IP") || "unknown";
   const contactHash = await sha256("login:" + contact);
   const ipHash = await sha256("login-ip:" + ip);
-  if (!(await rateLimit(env.DB, "login-contact:" + contactHash, 8, 900)) ||
-      !(await rateLimit(env.DB, "login-ip:" + ipHash, 20, 900))) {
+  if (!(await rateLimit(env.DB, "login-contact:" + contactHash, 8, 900)).allowed ||
+      !(await rateLimit(env.DB, "login-ip:" + ipHash, 20, 900)).allowed) {
     return json({ error: "Too many sign-in attempts. Try again later." }, 429);
   }
 
@@ -353,7 +393,7 @@ async function createSupportTicket(request, env) {
   if (!validOrigin(request)) return json({ error: "Request origin rejected." }, 403);
   const ip = request.headers.get("CF-Connecting-IP") || "unknown";
   const ipHash = await sha256("support-ticket-ip:" + ip);
-  if (!(await rateLimit(env.DB, "support-ticket:" + ipHash, 5, 3600))) {
+  if (!(await rateLimit(env.DB, "support-ticket:" + ipHash, 5, 3600)).allowed) {
     return json({ error: "Too many reports. Please try again later." }, 429);
   }
   const body = await readJson(request);
