@@ -116,7 +116,7 @@ test("secret values are not hard-coded in application source", () => {
 });
 
 test("UI does not falsely claim that sign-in and registration are wholly inactive", () => {
-  assert.match(html, /starter account API includes sign-in, contact verification and account creation/);
+  assert.match(html, /starter account API includes sign-in, email\/phone contact verification and account creation/);
   assert.doesNotMatch(html, /Account creation, login, password reset, PIN verification and identity checks are not active/);
 });
 
