@@ -2,7 +2,7 @@ name: FICSDavid MVP smoke tests
 
 on:
   push:
-    branches: [main]
+    branches: [main, feat/provider-integration-foundation]
   pull_request:
     branches: [main]
 
@@ -21,3 +21,5 @@ jobs:
           node-version: 22
       - name: Run MVP smoke tests
         run: node --test tests/mvp-smoke.test.mjs
+      - name: Run provider integration foundation tests
+        run: node --test tests/provider-registry.test.mjs tests/provider-adapter-contract.test.mjs
