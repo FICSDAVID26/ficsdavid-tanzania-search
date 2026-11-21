@@ -378,6 +378,35 @@ async function logout(request, env) {
   });
 }
 
+async function servicePreferences(request, env, user) {
+  if (!user) return json({ error: "Sign in is required." }, 401);
+  if (request.method === "GET") {
+    const row = await env.DB.prepare(
+      "SELECT preferred_language FROM service_preferences WHERE user_id=?"
+    ).bind(user.id).first();
+    return json({ preferences: { preferred_language: row?.preferred_language || "sw" } });
+  }
+  if (request.method !== "PUT") {
+    return json({ error: "Method not allowed." }, 405, { Allow: "GET, PUT" });
+  }
+  if (!validOrigin(request)) return json({ error: "Request origin rejected." }, 403);
+  const body = await readJson(request);
+  const language = body.preferred_language;
+  if (language !== "sw" && language !== "en") {
+    return json({ error: "preferred_language must be 'sw' or 'en'." }, 400);
+  }
+  const now = Math.floor(Date.now() / 1000);
+  await env.DB.prepare(
+    `INSERT INTO service_preferences(user_id, preferred_language, created_at, updated_at)
+     VALUES(?,?,?,?)
+     ON CONFLICT(user_id) DO UPDATE SET
+       preferred_language=excluded.preferred_language,
+       updated_at=excluded.updated_at`
+  ).bind(user.id, language, now, now).run();
+  await audit(env.DB, user.id, "service_preferences_updated", { preferred_language: language });
+  return json({ success: true, preferences: { preferred_language: language } });
+}
+
 async function createSupportTicket(request, env) {
   if (!validOrigin(request)) return json({ error: "Request origin rejected." }, 403);
   const ip = request.headers.get("CF-Connecting-IP") || "unknown";
@@ -452,6 +481,21 @@ export default {
         return await handleMobileSms(request, env, user, url.pathname);
       } catch (_) {
         return json({ error: "Huduma ya SMS haikuweza kukamilisha ombi." }, 500);
+      }
+    }
+
+    if (url.pathname === "/api/account/preferences") {
+      if (!["GET", "PUT"].includes(request.method)) {
+        return json({ error: "Method not allowed." }, 405, { Allow: "GET, PUT" });
+      }
+      try {
+        const user = await currentUser(request, env);
+        return await servicePreferences(request, env, user);
+      } catch (error) {
+        if (error && error.message === "JSON_REQUIRED") return json({ error: "Send JSON content." }, 415);
+        if (error && error.message === "BODY_TOO_LARGE") return json({ error: "Request too large." }, 413);
+        if (error && error.message === "INVALID_JSON") return json({ error: "Invalid JSON." }, 400);
+        return json({ error: "Preferences could not be saved. Please try again." }, 500);
       }
     }
 
