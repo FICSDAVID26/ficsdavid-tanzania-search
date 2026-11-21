@@ -112,8 +112,19 @@ async function audit(db, userId, eventType, detail = {}) {
 
 export function normalizeSenderAddress(value) {
   const configuredFrom = String(value || "onboarding@resend.dev").trim();
-  const angleAddress = configuredFrom.match(/<\s*([^<>]+)\s*>/);
-  const senderAddress = (angleAddress ? angleAddress[1] : configuredFrom).trim();
+  const hasAngleBrackets = /[<>]/.test(configuredFrom);
+  let senderAddress = configuredFrom;
+
+  if (hasAngleBrackets) {
+    // Accept one complete display-name <email> form only; reject trailing
+    // text, unmatched brackets, and multiple/ambiguous address pairs.
+    const angleAddress = configuredFrom.match(/^[^<>]*<\s*([^<>]+)\s*>$/);
+    if (!angleAddress) {
+      throw new Error("RESEND_FROM_EMAIL must contain a valid sender email address");
+    }
+    senderAddress = angleAddress[1].trim();
+  }
+
   if (!/^[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+$/.test(senderAddress)) {
     throw new Error("RESEND_FROM_EMAIL must contain a valid sender email address");
   }
