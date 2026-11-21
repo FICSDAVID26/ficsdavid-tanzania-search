@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
+import { normalizeSenderAddress } from "../functions/_shared/account-api.js";
 
 const root = new URL("../", import.meta.url);
 const read = (path) => readFileSync(new URL(path, root), "utf8");
@@ -64,6 +65,30 @@ test("service preferences API is authenticated and restricts language values", (
   assert.match(api, /url\.pathname === "\/api\/account\/preferences"/);
   assert.match(api, /Allow: "GET, PUT"/);
   assert.match(api, /Sign in is required/);
+});
+
+test("sender address normalization accepts valid sender formats", () => {
+  assert.equal(normalizeSenderAddress("sender@example.com"), "sender@example.com");
+  assert.equal(normalizeSenderAddress("  sender@example.com  "), "sender@example.com");
+  assert.equal(normalizeSenderAddress("FICSDavid <sender@example.com>"), "sender@example.com");
+  assert.equal(normalizeSenderAddress("FICSDavid < sender@example.com >"), "sender@example.com");
+  assert.equal(normalizeSenderAddress(""), "onboarding@resend.dev");
+  assert.equal(normalizeSenderAddress(null), "onboarding@resend.dev");
+});
+
+test("sender address normalization rejects malformed or ambiguous addresses", () => {
+  for (const value of [
+    "not-an-email",
+    "sender@localhost",
+    "sender @example.com",
+    "sender@example.com extra",
+    "FICSDavid <sender@example.com",
+    "FICSDavid sender@example.com>",
+    "<sender@example.com><other@example.com>",
+    "sender@@example.com"
+  ]) {
+    assert.throws(() => normalizeSenderAddress(value), /RESEND_FROM_EMAIL must contain a valid sender email address/);
+  }
 });
 
 test("account API keeps core authentication safeguards", () => {

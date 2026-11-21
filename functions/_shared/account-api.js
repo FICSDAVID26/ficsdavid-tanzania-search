@@ -110,14 +110,29 @@ async function audit(db, userId, eventType, detail = {}) {
   ).bind(crypto.randomUUID(), userId || null, eventType, Math.floor(Date.now() / 1000), JSON.stringify(detail)).run();
 }
 
-async function sendVerification(env, type, recipient, code) {
-  if (type === "email" && env.RESEND_API_KEY) {
-    const configuredFrom = String(env.RESEND_FROM_EMAIL || "onboarding@resend.dev").trim();
-    const angleAddress = configuredFrom.match(/<\\s*([^<>]+)\\s*>/);
-    const senderAddress = (angleAddress ? angleAddress[1] : configuredFrom).trim();
-    if (!/^[^\\s<>@]+@[^\\s<>@]+\\.[^\\s<>@]+$/.test(senderAddress)) {
+export function normalizeSenderAddress(value) {
+  const configuredFrom = String(value || "onboarding@resend.dev").trim();
+  const hasAngleBrackets = /[<>]/.test(configuredFrom);
+  let senderAddress = configuredFrom;
+
+  if (hasAngleBrackets) {
+    // Accept one complete display-name <email> form only; reject malformed or ambiguous input.
+    const angleAddress = configuredFrom.match(/^[^<>]*<\s*([^<>]+)\s*>$/);
+    if (!angleAddress) {
       throw new Error("RESEND_FROM_EMAIL must contain a valid sender email address");
     }
+    senderAddress = angleAddress[1].trim();
+  }
+
+  if (!/^[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+$/.test(senderAddress)) {
+    throw new Error("RESEND_FROM_EMAIL must contain a valid sender email address");
+  }
+  return senderAddress;
+}
+
+async function sendVerification(env, type, recipient, code) {
+  if (type === "email" && env.RESEND_API_KEY) {
+    const senderAddress = normalizeSenderAddress(env.RESEND_FROM_EMAIL);
     // Always present the platform's own verified brand name to the recipient.
     const from = `FICSDavid <${senderAddress}>`;
     const textBody = `Your FICSDavid verification code is ${code}. It expires in 10 minutes. If you did not request this code, ignore this email.`;
