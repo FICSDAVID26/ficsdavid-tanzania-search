@@ -55,11 +55,11 @@ test("Cloudflare Pages routes API requests to the account API", () => {
   ]) assert.ok(api.includes(endpoint), `Missing API endpoint: ${endpoint}`);
 });
 
-test("verification sender parsing uses valid regular-expression escapes", () => {
+test("verification sender parsing uses anchored regular expressions", () => {
   assert.ok(api.includes("export function normalizeSenderAddress(value)"));
-  assert.ok(api.includes("configuredFrom.match(/<\\s*([^<>]+)\\s*>/)"));
+  assert.ok(api.includes("configuredFrom.match(/^[^<>]*<\\s*([^<>]+)\\s*>$/)"));
   assert.ok(api.includes("if (!/^[^\\s<>@]+@[^\\s<>@]+\\.[^\\s<>@]+$/.test(senderAddress))"));
-  assert.ok(!api.includes("configuredFrom.match(/<\\\\s*([^<>]+)\\\\s*>/)"));
+  assert.ok(!api.includes("configuredFrom.match(/^[^<>]*<\\\\s*([^<>]+)\\\\s*>$/)"));
   assert.ok(!api.includes("if (!/^[^\\\\s<>@]+@[^\\\\s<>@]+\\\\.[^\\\\s<>@]+$/.test(senderAddress))"));
 });
 
