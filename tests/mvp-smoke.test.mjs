@@ -12,6 +12,7 @@ const contacts = read("functions/_shared/communication-contacts.js");
 const mobile = read("functions/_shared/mobile-messaging.js");
 const route = read("functions/api/[[path]].js");
 const readme = read("README.md");
+const providerRegistry = read("docs/provider-registry.json");
 
 test("main website exposes the first-release service areas", () => {
   for (const id of [
@@ -115,6 +116,19 @@ test("secret values are not hard-coded in application source", () => {
 });
 
 test("UI does not falsely claim that sign-in and registration are wholly inactive", () => {
-  assert.match(html, /starter account API includes sign-in, contact verification and account creation/);
+  assert.match(html, /starter account API includes sign-in, email\/phone contact verification and account creation/);
   assert.doesNotMatch(html, /Account creation, login, password reset, PIN verification and identity checks are not active/);
+});
+
+
+test("NIDA identity verification is visible but remains safely disabled pending official approval", () => {
+  const registry = JSON.parse(providerRegistry);
+  const nida = registry.providers.find(provider => provider.id === "nida-identity-verification");
+  assert.ok(nida, "NIDA must be listed in the provider registry");
+  assert.equal(nida.enabled, false);
+  assert.equal(nida.status, "research");
+  assert.match(nida.evidence, /formal data-sharing request/i);
+  assert.match(html, /Tanzania NIDA Identity Verification/);
+  assert.match(html, /OTP confirms contact ownership only/);
+  assert.match(html, /OTP inathibitisha umiliki wa mawasiliano tu/);
 });

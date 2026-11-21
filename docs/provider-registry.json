@@ -16,6 +16,23 @@
   ],
   "providers": [
     {
+      "id": "nida-identity-verification",
+      "name": "Tanzania NIDA — Official Identity Verification",
+      "website": "https://nida.go.tz/index.php/Ushirikishanaji-Taarifa",
+      "capabilities": [
+        "national_identity_verification",
+        "nin_validation",
+        "identity_data_sharing"
+      ],
+      "markets": [
+        "TZ"
+      ],
+      "status": "research",
+      "enabled": false,
+      "evidence": "Official NIDA guidance describes partner onboarding through a formal data-sharing request, institutional documents, network architecture and API details, technical assessment, agreement and test environment. Usage charges apply. No FICSDavid access or approval is currently established.",
+      "engagementModel": "Direct institutional application to NIDA; complete legal/business and data-protection requirements before requesting access"
+    },
+    {
       "id": "malipopay",
       "name": "MALIPOPAY",
       "website": "https://developers.malipopay.co.tz/",
