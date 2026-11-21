@@ -55,11 +55,11 @@ test("Cloudflare Pages routes API requests to the account API", () => {
 });
 
 test("verification sender parsing uses valid regular-expression escapes", () => {
-  assert.match(api, /export function normalizeSenderAddress\(value\)/);
-  assert.match(api, /configuredFrom\.match\(\/<\\\\s\*\(\[\^<>\]\+\)\\\\s\*>\//);
-  assert.match(api, /!\/\^\[\^\\s<>@\]\+@\[\^\\s<>@\]\+\\\.\[\^\\s<>@\]\+\$\//);
-  assert.doesNotMatch(api, /<\\\\\\\\s/);
-  assert.doesNotMatch(api, /\^\[\^\\\\s<>@\]/);
+  assert.ok(api.includes("export function normalizeSenderAddress(value)"));
+  assert.ok(api.includes(String.raw\`configuredFrom.match(/<\s*([^<>]+)\s*>/)\`));
+  assert.ok(api.includes(String.raw\`if (!/^[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+$/.test(senderAddress))\`));
+  assert.ok(!api.includes(String.raw\`configuredFrom.match(/<\\s*([^<>]+)\\s*>/)\`));
+  assert.ok(!api.includes(String.raw\`if (!/^[^\\s<>@]+@[^\\s<>@]+\\.[^\\s<>@]+$/.test(senderAddress))\`));
 });
 
 test("account API keeps core authentication safeguards", () => {
