@@ -112,7 +112,14 @@ async function audit(db, userId, eventType, detail = {}) {
 
 async function sendVerification(env, type, recipient, code) {
   if (type === "email" && env.RESEND_API_KEY) {
-    const from = env.RESEND_FROM_EMAIL || "FICSDavid <onboarding@resend.dev>";
+    const configuredFrom = String(env.RESEND_FROM_EMAIL || "onboarding@resend.dev").trim();
+    const angleAddress = configuredFrom.match(/<\\s*([^<>]+)\\s*>/);
+    const senderAddress = (angleAddress ? angleAddress[1] : configuredFrom).trim();
+    if (!/^[^\\s<>@]+@[^\\s<>@]+\\.[^\\s<>@]+$/.test(senderAddress)) {
+      throw new Error("RESEND_FROM_EMAIL must contain a valid sender email address");
+    }
+    // Always present the platform's own verified brand name to the recipient.
+    const from = `FICSDavid <${senderAddress}>`;
     const textBody = `Your FICSDavid verification code is ${code}. It expires in 10 minutes. If you did not request this code, ignore this email.`;
     const htmlBody = `<div style="font-family:Arial,sans-serif;line-height:1.6"><h2>FICSDavid account verification</h2><p>Your verification code is:</p><p style="font-size:28px;font-weight:bold;letter-spacing:6px">${code}</p><p>This code expires in 10 minutes. If you did not request it, ignore this email.</p></div>`;
     const response = await fetch("https://api.resend.com/emails", {
