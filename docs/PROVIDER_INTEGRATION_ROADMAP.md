@@ -96,6 +96,14 @@ Rules:
 - **Payments and Wallet:** obtain written confirmation from the payment partner and Tanzanian legal/regulatory advice on whether FICSDavid is acting only as a merchant using a licensed provider or conducting a separately regulated payment/wallet activity. A gateway API is not itself a license for FICSDavid.
 - Require written partner contracts covering authorization, service levels, fees, settlement, liability, customer complaints, refunds, data processing, security incidents, termination and use of trademarks.
 
+### Identity verification — Tanzania NIDA
+
+- NIDA's official data-sharing guidance describes partner access through a formal application to the Director General, with institutional/business licensing documents, TIN, network architecture and API details; the submission is assessed before technical consultation, agreement and test access.
+- NIDA lists Common Interface Gateway (CIG), Secure Portal and offline card verification routes. FICSDavid must not call a private or unofficial endpoint, scrape NIDA records, or claim an identity is NIDA-verified without authorized access and a successful, auditable response.
+- NIDA lists usage charges; therefore this is not a live TSh 0 integration. Keep the provider in research/disabled state until the required legal/business and data-protection prerequisites, written approval, fees and security tests are complete.
+- Email/SMS OTP verifies control of a contact channel only. It must never be represented as legal identity verification or NIDA KYC.
+- Official information: https://nida.go.tz/index.php/Ushirikishanaji-Taarifa and https://services.nida.go.tz/default
+
 ## 7. TSh 0 execution plan
 
 ### Stage A — no-cost preparation
